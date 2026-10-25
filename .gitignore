@@ -1,0 +1,8 @@
+node_modules/
+exemplo-NodeGoat/
+sbom.cdx.json
+*.cdx.json
+vulns.json
+kev-cisa-*.json
+epss-first-*.json
+.env
