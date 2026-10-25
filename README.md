@@ -1,6 +1,6 @@
-# Decurso
+# Compline
 
-Decurso turns a software repo into a Cyber Resilience Act (CRA) compliance report.
+Compline turns a software repo into a Cyber Resilience Act (CRA) compliance report.
 
 It is a technical proof of concept: point it at a repo, and it generates a software bill of materials (SBOM), scans that SBOM for known vulnerabilities, cross-references every CVE against the CISA KEV catalogue of actively exploited vulnerabilities and the FIRST EPSS exploit-probability score, and writes a markdown report that links each finding to the relevant notification deadline under **Article 14 of Regulation (EU) 2024/2847** (the Cyber Resilience Act).
 
@@ -16,7 +16,7 @@ Article 14 of the CRA requires manufacturers of products with digital elements t
 
 These reporting obligations have applied since 11 September 2026; full application of the CRA, including CE marking, lands on 11 December 2027.
 
-The hard part is not listing vulnerabilities — free scanners already do that. The hard part is knowing which of those vulnerabilities is **actively exploited**, because that is what starts the clock. Decurso approaches that by cross-referencing every CVE found against the public CISA KEV (Known Exploited Vulnerabilities) catalogue, and ranking the rest by FIRST's EPSS exploit-probability score.
+The hard part is not listing vulnerabilities — free scanners already do that. The hard part is knowing which of those vulnerabilities is **actively exploited**, because that is what starts the clock. Compline approaches that by cross-referencing every CVE found against the public CISA KEV (Known Exploited Vulnerabilities) catalogue, and ranking the rest by FIRST's EPSS exploit-probability score.
 
 ## What's in this repo
 
@@ -39,7 +39,7 @@ Full detail in [`relatorio.md`](./relatorio.md). Summary:
 - Top EPSS-ranked CVE in that run: `CVE-2020-7774` (y18n), EPSS 0.69377.
 - Total SBOM generation + vulnerability scan time: ~3 seconds.
 
-OWASP NodeGoat is a deliberately outdated demo application, used here purely as a target to exercise the pipeline — these numbers describe NodeGoat, not any product of Decurso's own.
+OWASP NodeGoat is a deliberately outdated demo application, used here purely as a target to exercise the pipeline — these numbers describe NodeGoat, not any product of Compline's own.
 
 ## How to run
 
@@ -53,8 +53,8 @@ OWASP NodeGoat is a deliberately outdated demo application, used here purely as 
 
 ```bash
 # 1. Clone this repo
-git clone <this-repo-url> decurso
-cd decurso
+git clone https://github.com/FranciscoCascalheira/compline.git compline
+cd compline
 
 # 2. Clone a target to scan — OWASP NodeGoat is what the proof above used
 git clone https://github.com/OWASP/NodeGoat.git exemplo-NodeGoat

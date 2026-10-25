@@ -1,7 +1,7 @@
 {
-  "name": "decurso-proof",
+  "name": "compline-proof",
   "version": "0.1.0",
-  "description": "Decurso proof of concept: SBOM + vulnerability scan, cross-referenced against CISA KEV and FIRST EPSS, mapped to CRA Article 14.",
+  "description": "Compline proof of concept: SBOM + vulnerability scan, cross-referenced against CISA KEV and FIRST EPSS, mapped to CRA Article 14.",
   "license": "MIT",
   "private": true,
   "type": "module",
