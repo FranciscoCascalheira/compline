@@ -121,6 +121,62 @@ def runtime_packages(target):
     return None
 
 
+# Firmware manifests that Syft does not read, and the NVD names Grype matches them by (D14).
+FIRMWARE_CPES = {
+    'esp-idf': 'cpe:2.3:a:espressif:esp-idf:{}:*:*:*:*:*:*:*',
+    'zephyr': 'cpe:2.3:o:zephyrproject:zephyr:{}:*:*:*:*:*:*:*',
+}
+SKIP_DIRS = {'.git', 'build', 'managed_components', 'node_modules', 'test', 'tests', 'examples'}  # what does not ship
+
+
+def firmware_components(target):
+    """Components declared in ESP-IDF and Zephyr manifests, each with the file it came from (D14).
+
+    A version is 'resolved' only when a lock file or a release tag pins it; a constraint such as ^3.0.3 is kept
+    as written and never turned into a version.
+    """
+    target = Path(target)
+    found = lambda name: sorted(p for p in target.rglob(name) if p.is_file() and not SKIP_DIRS & set(p.relative_to(target).parts))
+    comps = []
+
+    def add(name, version, resolved, source, ecosystem):
+        comps.append({'name': 'esp-idf' if name == 'idf' else name, 'version': str(version), 'resolved': resolved,
+                      'source': source.relative_to(target).as_posix(), 'ecosystem': ecosystem})
+
+    locks = found('dependencies.lock')
+    for lock in locks:
+        for name, d in ((yaml.safe_load(lock.read_text(encoding='utf8')) or {}).get('dependencies') or {}).items():
+            add(name, d.get('version', 'unknown'), 'version' in d, lock, 'esp-idf')
+    if not locks:  # no lock file: only constraints are known
+        for manifest in found('idf_component.yml'):
+            for name, spec in ((yaml.safe_load(manifest.read_text(encoding='utf8')) or {}).get('dependencies') or {}).items():
+                add(name, spec.get('version', '*') if isinstance(spec, dict) else spec, False, manifest, 'esp-idf')
+    for west in found('west.yml'):
+        manifest = (yaml.safe_load(west.read_text(encoding='utf8')) or {}).get('manifest') or {}
+        default = (manifest.get('defaults') or {}).get('revision', 'master')
+        for project in manifest.get('projects') or []:
+            revision = str(project.get('revision', default))
+            tag = re.fullmatch(r'v?(\d+\.\d+(?:\.\d+)?)', revision)
+            add(project['name'], tag.group(1) if tag else revision, bool(tag), west, 'zephyr-west')
+            allow = (project.get('import') or {}).get('name-allowlist') if isinstance(project.get('import'), dict) else None
+            for module in allow or []:
+                add(module, f"from {project['name']} {revision}", False, west, 'zephyr-west')
+    return comps
+
+
+def cyclonedx(firmware):
+    """Firmware components as CycloneDX entries; type library, because Grype matches CPEs on that type and not on operating-system (D14)."""
+    out = []
+    for i, c in enumerate(firmware):
+        entry = {'type': 'library', 'bom-ref': f"compline-firmware-{i}", 'name': c['name'], 'version': c['version'],
+                 'properties': [{'name': 'compline:source', 'value': c['source']}, {'name': 'compline:ecosystem', 'value': c['ecosystem']},
+                                {'name': 'compline:resolved', 'value': str(c['resolved']).lower()}]}
+        if c['resolved'] and c['name'] in FIRMWARE_CPES:
+            entry['cpe'] = FIRMWARE_CPES[c['name']].format(c['version'])
+        out.append(entry)
+    return out
+
+
 def cmd_scan(a):
     out = Path(a.out)
     if out.exists() and any(out.iterdir()) and not a.force:
@@ -133,6 +189,11 @@ def cmd_scan(a):
 
     t0 = time.monotonic()
     sbom = run([syft, 'scan', f'dir:{a.target}', '-o', 'cyclonedx-json', '-q'])
+    firmware = firmware_components(a.target)
+    if firmware:  # D14: before matching, so Grype sees the SDK and RTOS too
+        doc = json.loads(sbom)
+        doc['components'] = doc.get('components', []) + cyclonedx(firmware)
+        sbom = json.dumps(doc, indent=1).encode()
     t1 = time.monotonic()
     with tempfile.NamedTemporaryFile(suffix='.cdx.json') as f:
         f.write(sbom)
@@ -140,7 +201,7 @@ def cmd_scan(a):
         vulns = run([grype, f'sbom:{f.name}', '-o', 'json', '-q'])
     t2 = time.monotonic()
     kev = Path(a.kev).read_bytes() if a.kev else urllib.request.urlopen(KEV_URL, timeout=60).read()
-    raw = {'sbom': sbom, 'grype': vulns, 'kev': kev, 'repo': json.dumps(repo_signals(a.target), indent=1).encode()}
+    raw = {'sbom': sbom, 'grype': vulns, 'kev': kev, 'repo': json.dumps({**repo_signals(a.target), 'firmware': firmware}, indent=1).encode()}
     for name, data in raw.items():
         try:
             json.loads(data)
@@ -195,6 +256,9 @@ def components(sbom):
 
 
 def ecosystem(c):
+    prop = next((p['value'] for p in c.get('properties', []) if p.get('name') == 'compline:ecosystem'), None)
+    if prop:
+        return prop
     return c['purl'].split(':', 1)[1].split('/', 1)[0] if c.get('purl') else c.get('type', 'other')
 
 
@@ -276,6 +340,20 @@ def scan_claims(m, d):
         ('6', 'repo.tests', f"Automated test code in the repository: {len(test_code)} files (for example {listed(test_code, 2)})." if test_code else 'No automated test code in the repository (looked in test/, tests/ and __tests__/).', ev(m, 'repo')),
         ('8', 'scan.sbom-on-request', f"The SBOM is available in CycloneDX JSON ({f['components']} components) and `compline scan` regenerates it for every release.", ev(m, 'sbom')),
     ]
+    firmware = d['repo'].get('firmware')  # absent in bundles scanned before D14
+    if firmware:
+        pinned = [c for c in firmware if c['resolved']]
+        loose = [c for c in firmware if not c['resolved']]
+        named = lambda cs: listed([f"{c['name']} {c['version']}" for c in cs])
+        keys = {(c['name'], c['version']) for c in firmware}
+        hits = sum(1 for x in d['grype'].get('matches', []) if (x['artifact']['name'], x['artifact']['version']) in keys)
+        text = (f"{len(firmware)} firmware components are declared in manifests the SBOM tool does not read "
+                f"({listed(sorted({c['source'] for c in firmware}))}) and were added to the SBOM, each marked with its source file: "
+                f"{len(pinned)} with a pinned version" + (f" ({named(pinned)})" if pinned else '') +
+                f", {len(loose)} with only a version constraint or a branch" + (f" ({named(loose)})" if loose else '') +
+                f". {hits} of the vulnerability matches are in these components." +
+                (' Without a lock file or a release tag, the exact versions of the others are not known from the repository; see the interview.' if loose else ''))
+        claims.append(('2b', 'repo.firmware', text, ev(m, 'sbom', 'grype', 'repo')))
     return [{'item': i, 'key': k, 'status': 'evidence', 'text': text, 'sources': src} for i, k, text, src in claims]
 
 

@@ -63,3 +63,13 @@ The deterministic path is the floor: every sentence in the file comes from an ar
 ## D13, 26/10/2026. The NodeGoat path is kept and corrected, not deleted
 
 `annex7.py` still drafts from `relatorio.md`, because the submitted pitch deck points at `annex-vii-draft.md`. Fixed on 26/10/2026: it read the EPSS table as if it were the critical and high table (56 identifiers instead of 54), it counted fixes over 72 rows while naming the 105 findings, it said "actively exploited" for "not in KEV", it paraphrased point 1(c), and it left out point 2(c).
+
+## D14, 26/10/2026. Firmware manifests (ESP-IDF, Zephyr west) go into the SBOM before matching
+
+Syft does not read the manifests that embedded C firmware uses to declare its SDK and components. Measured on 26/10/2026: on ESPresense (ESP-IDF, `main/idf_component.yml`) and on `zephyrproject-rtos/example-application` (`west.yml`), the SBOM held only the GitHub Actions of the CI and, for the first, one web UI package; none of the firmware's components.
+
+`compline scan` now reads `dependencies.lock` (or, without it, every `idf_component.yml`) and `west.yml`, outside `build/`, `managed_components/`, test and example folders, and adds each declared component to the CycloneDX SBOM before Grype runs, marked with the file it came from. A version counts as pinned only when a lock file or a release tag says so; a constraint (`^3.0.3`, `>=5.4`) or a branch (`main`) is kept as written and never turned into a version. Pinned ESP-IDF and Zephyr get their NVD CPE (`espressif:esp-idf`, `zephyrproject:zephyr`) so Grype can match them; the components get type `library`, because Grype 0.121.0 matched CPEs on that type and not on `operating-system` (tested on 26/10/2026). The file gains one claim, `repo.firmware`, only when such manifests exist, so bundles scanned before D14 are unchanged.
+
+Measured on 26/10/2026 with real Syft and Grype: ESPresense, 10 components declared and none pinned (no lock file in the repository); the Zephyr example, 4 declared, none pinned (revision `main`); `jmharvey1/ESP32BtCWKeyBrd`, ESP-IDF 4.4.4 pinned by its lock file, 15 vulnerability matches where the SBOM before D14 had no firmware component at all.
+
+Not covered yet: git submodules, code copied into the repository without a manifest, PlatformIO `platformio.ini`, Yocto and Buildroot. Those still come from the interview.

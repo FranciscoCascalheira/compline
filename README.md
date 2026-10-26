@@ -49,7 +49,7 @@ You need Python 3.12 or later with PyYAML, and [Syft](https://github.com/anchore
 ./compline.py interview --answers my-answers.yaml                               # checks sources, lists what is still to ask
 ./compline.py annex evidence/my-product-1.0 --answers my-answers.yaml --out annex-vii.md
 ./compline.py diff evidence/my-product-0.9 evidence/my-product-1.0 --answers my-answers.yaml
-npm test                                                                         # 18 tests, offline
+npm test                                                                         # 23 tests, offline
 ```
 
 Questions live in [`interview/questions.yaml`](interview/questions.yaml); [`interview/answers-zigbee2mqtt.yaml`](interview/answers-zigbee2mqtt.yaml) shows the answer format.
@@ -70,7 +70,7 @@ Questions live in [`interview/questions.yaml`](interview/questions.yaml); [`inte
 
 - A draft for an engineer to review and sign. Not legal advice, not a conformity assessment.
 - The runtime and development split reads npm and pnpm lockfiles only; other ecosystems count every package ([D11](docs/decisions.md)).
-- Syft does not see vendored C code or binaries without package metadata; those need the interview.
+- Embedded C firmware: the SDK and components declared in ESP-IDF (`dependencies.lock`, `idf_component.yml`) and Zephyr (`west.yml`) manifests are added to the SBOM, and pinned ESP-IDF and Zephyr versions are matched against known vulnerabilities ([D14](docs/decisions.md)). Code copied into the repository without a manifest, git submodules, PlatformIO, Yocto and Buildroot are not read yet; those need the interview.
 - KEV membership is a public signal of exploitation, not the Article 14 test ([D10](docs/decisions.md)).
 - No language model writes any part of the file yet ([D12](docs/decisions.md)).
 

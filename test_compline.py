@@ -97,6 +97,81 @@ snapshots:
             self.assertEqual(compline.runtime_packages(tmp)['packages'], ['a@1.0.0', 'b@2.0.0'])
 
 
+class Firmware(unittest.TestCase):
+    """D14: ESP-IDF and Zephyr manifests, which Syft does not read."""
+
+    def tree(self, files):
+        tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, tmp)
+        for path, text in files.items():
+            (tmp / path).parent.mkdir(parents=True, exist_ok=True)
+            (tmp / path).write_text(text)
+        return tmp
+
+    def test_esp_idf_lock_pins_versions_and_names_the_sdk(self):
+        t = self.tree({
+            'dependencies.lock': 'dependencies:\n  idf:\n    source: {type: idf}\n    version: 5.4.1\n'
+                                 '  espressif/led_strip:\n    version: 3.0.3\nversion: 2.0.0\n',
+            'main/idf_component.yml': 'dependencies:\n  idf: ">=5.4"\n',
+            'managed_components/espressif__led_strip/idf_component.yml': 'dependencies:\n  idf: ">=4.4"\n',
+        })
+        comps = compline.firmware_components(t)
+        self.assertEqual([(c['name'], c['version'], c['resolved'], c['source']) for c in comps],
+                         [('esp-idf', '5.4.1', True, 'dependencies.lock'), ('espressif/led_strip', '3.0.3', True, 'dependencies.lock')])
+        cdx = compline.cyclonedx(comps)
+        self.assertEqual(cdx[0]['cpe'], 'cpe:2.3:a:espressif:esp-idf:5.4.1:*:*:*:*:*:*:*')
+        self.assertNotIn('cpe', cdx[1])  # no NVD name known for registry components
+        self.assertTrue(all(c['type'] == 'library' for c in cdx))
+
+    def test_manifest_without_lock_keeps_constraints_and_claims_no_version(self):
+        t = self.tree({'main/idf_component.yml': 'dependencies:\n  idf: ">=5.4"\n  espressif/ds18b20: "^0.4.0"\n'
+                                                  '  local/x:\n    version: "~1.2"\n',
+                       'test/deps/main/idf_component.yml': 'dependencies:\n  unity: "*"\n'})
+        comps = compline.firmware_components(t)
+        self.assertEqual([(c['name'], c['version'], c['resolved']) for c in comps],
+                         [('esp-idf', '>=5.4', False), ('espressif/ds18b20', '^0.4.0', False), ('local/x', '~1.2', False)])
+        self.assertFalse(any('cpe' in c for c in compline.cyclonedx(comps)))
+
+    def test_west_tag_is_a_version_and_a_branch_is_not(self):
+        t = self.tree({'west.yml': 'manifest:\n  projects:\n'
+                                   '    - name: zephyr\n      revision: v3.7.0\n      import:\n        name-allowlist: [hal_nordic]\n'
+                                   '    - name: mylib\n      revision: main\n',
+                       'build/west.yml': 'manifest: {projects: [{name: ignored}]}\n'})
+        comps = compline.firmware_components(t)
+        self.assertEqual([(c['name'], c['version'], c['resolved']) for c in comps],
+                         [('zephyr', '3.7.0', True), ('hal_nordic', 'from zephyr v3.7.0', False), ('mylib', 'main', False)])
+        self.assertEqual(compline.cyclonedx(comps)[0]['cpe'], 'cpe:2.3:o:zephyrproject:zephyr:3.7.0:*:*:*:*:*:*:*')
+
+    def test_scan_adds_them_to_the_sbom_before_matching_and_the_file_says_where_they_came_from(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            (tmp / 'kev.json').write_bytes(raw(NEW, 'kev.json'))
+            (tmp / 'syft.json').write_text(json.dumps({'bomFormat': 'CycloneDX', 'specVersion': '1.6', 'components': []}))
+            (tmp / 'fake-syft').write_text(f'#!/bin/sh\ncat "{tmp / "syft.json"}"\n')
+            # The stand-in Grype records the SBOM it was given, to prove the firmware was in it before matching.
+            (tmp / 'fake-grype').write_text(f'#!/bin/sh\ncat "${{1#sbom:}}" > "{tmp / "seen.json"}"\necho \'{{"matches": []}}\'\n')
+            for s in ('fake-syft', 'fake-grype'):
+                (tmp / s).chmod(0o755)
+            target = tmp / 'fw'
+            (target / 'main').mkdir(parents=True)
+            (target / 'main' / 'idf_component.yml').write_text('dependencies:\n  idf: ">=5.4"\n')
+            env = {**os.environ, 'SYFT_BIN': str(tmp / 'fake-syft'), 'GRYPE_BIN': str(tmp / 'fake-grype')}
+            r = cli('scan', target, '--out', tmp / 'ev', '--kev', tmp / 'kev.json', '--version', '1.0', env=env)
+            self.assertEqual(r.returncode, 0, r.stderr)
+
+            seen = json.loads((tmp / 'seen.json').read_text())
+            self.assertEqual([c['name'] for c in seen['components']], ['esp-idf'])
+            self.assertEqual(json.loads(raw(tmp / 'ev', 'repo.json'))['firmware'][0]['source'], 'main/idf_component.yml')
+            claims = {c['key']: c['text'] for item in compline.build_annex(tmp / 'ev')['items'] for c in item['claims'] if c['status'] == 'evidence'}
+            self.assertIn('1 firmware components are declared', claims['repo.firmware'])
+            self.assertIn('esp-idf >=5.4', claims['repo.firmware'])
+            self.assertIn('not known from the repository', claims['repo.firmware'])
+
+    def test_bundles_scanned_before_d14_get_no_firmware_claim(self):
+        m, d = compline.load(NEW)
+        self.assertNotIn('repo.firmware', {c['key'] for c in compline.scan_claims(m, d)})
+
+
 class Annex(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
