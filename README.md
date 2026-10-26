@@ -49,7 +49,8 @@ You need Python 3.12 or later with PyYAML, and [Syft](https://github.com/anchore
 ./compline.py interview --answers my-answers.yaml                               # checks sources, lists what is still to ask
 ./compline.py annex evidence/my-product-1.0 --answers my-answers.yaml --out annex-vii.md
 ./compline.py diff evidence/my-product-0.9 evidence/my-product-1.0 --answers my-answers.yaml
-npm test                                                                         # 27 tests, offline
+./compline.py annex evidence/my-product-1.0 --answers my-answers.yaml --red --out annex-vii.md   # radio equipment: adds the EN 18031 requirements (D16)
+npm test                                                                         # 30 tests, offline
 ```
 
 Questions live in [`interview/questions.yaml`](interview/questions.yaml); [`interview/answers-zigbee2mqtt.yaml`](interview/answers-zigbee2mqtt.yaml) shows the answer format.

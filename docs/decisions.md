@@ -84,3 +84,9 @@ Extends D14 on the same rule: only an exact release (lock file, release tag, or 
 - **NVD names.** Besides ESP-IDF and Zephyr, CPEs for Mbed TLS, wolfSSL, OpenSSL, libcurl, Apache NimBLE, FreeRTOS, arduino-esp32, zlib, lwIP and cJSON. Each was kept only after Grype 0.121.0, with its database of 25/10/2026, matched an old release of it; `lwip:lwip` and littlefs matched nothing and were left out. Libraries without an NVD name (most Arduino libraries) are listed in the SBOM and matched by nobody, which the file does not hide.
 
 Still not read: code copied into the repository without any manifest, Yocto, Buildroot.
+
+## D16, 26/10/2026. `annex --red` lists the EN 18031 requirements and says where each answer comes from
+
+The sale today is the Radio Equipment Directive, whose presumption of conformity comes from EN 18031-1, -2 and -3 (Implementing Decision (EU) 2025/138). `interview/en18031.yaml` holds the 42 requirement identifiers and titles, read on 26/10/2026 in the official index previews (normy.normoff.gov.sk, items 139451 to 139453), the parts each belongs to, and where its answer has to come from. With `--red`, the file gains a table, one row per requirement, that cites the claims of the same file bearing on it.
+
+Only GEC-1 ("Up-to-date software and hardware with no publicly known exploitable vulnerabilities") is supported in substance by the scan (SBOM, matches, fixes, KEV, firmware manifests, dependency updates). SCM-2, SCM-3, CRY-1 and SUM-1 get a signal (the SBOM names the TLS or crypto library, or an update component) that proves nothing on its own. Everything else comes from the interview, a test report, or both. No row ever says a requirement is met: that is the manufacturer's decision-tree answer, with its justification. A row cites only claims present in the file, so a bundle scanned before D14 does not cite `repo.firmware`. Without `--red` the file is unchanged.

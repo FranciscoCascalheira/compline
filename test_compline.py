@@ -224,6 +224,36 @@ class Firmware(unittest.TestCase):
         self.assertNotIn('repo.firmware', {c['key'] for c in compline.scan_claims(m, d)})
 
 
+class Red(unittest.TestCase):
+    """D16: the EN 18031 list says where each answer comes from and never marks a requirement as met."""
+
+    def test_the_requirement_list_is_well_formed(self):
+        reqs = compline.read_yaml(compline.EN18031)['requirements']
+        self.assertEqual(len({r['id'] for r in reqs}), len(reqs))
+        self.assertTrue(all(r['title'] and r['parts'] and r['kind'] in compline.RED_STATUS for r in reqs))
+        self.assertEqual([r['id'] for r in reqs if r['kind'] == 'evidence'], ['GEC-1'])
+
+    def test_every_requirement_appears_once_and_cites_only_claims_this_file_has(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp) / 'a.md'
+            r = cli('annex', NEW, '--answers', ANSWERS, '--red', '--out', out)
+            self.assertEqual(r.returncode, 0, r.stderr)
+            md, annex = out.read_text(), json.loads(out.with_suffix('.json').read_text())
+        present = {c['key'] for it in annex['items'] for c in it['claims']}
+        for req in compline.read_yaml(compline.EN18031)['requirements']:
+            self.assertEqual(md.count(f"| [{req['id']}] "), 1, req['id'])
+        for row in annex['en18031']:
+            self.assertTrue(set(row['claims']) <= present, row['id'])
+        gec1 = next(x for x in annex['en18031'] if x['id'] == 'GEC-1')
+        self.assertNotIn('repo.firmware', gec1['claims'])  # the Zigbee2MQTT bundle predates D14
+        rows = [l for l in md.splitlines() if l.startswith('| [')]
+        self.assertFalse([l for l in rows if ' met' in l.split('|')[3]])  # the status column never says met
+
+    def test_without_the_flag_the_file_does_not_change(self):
+        self.assertNotIn('en18031', compline.build_annex(NEW, ANSWERS))
+        self.assertNotIn('## Radio Equipment Directive', compline.render(compline.build_annex(NEW, ANSWERS)))
+
+
 class Annex(unittest.TestCase):
     @classmethod
     def setUpClass(cls):

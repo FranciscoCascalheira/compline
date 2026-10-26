@@ -1,0 +1,47 @@
+# EN 18031-1, -2 and -3:2024, the harmonised standards for the cybersecurity requirements of the Radio Equipment Directive (D16).
+# Identifiers and titles from the official index previews (normy.normoff.gov.sk, items 139451 to 139453), read 26/10/2026.
+# kind: evidence = the scan supports it in substance; signal = the scan names something relevant but proves nothing;
+# interview, test, interview-and-test = where the answer has to come from. The decision-tree answers are the engineer's.
+requirements:
+  - {id: ACM-1, title: "Applicability of access control mechanisms", parts: [1, 2, 3], kind: interview}
+  - {id: ACM-2, title: "Appropriate access control mechanisms", parts: [1, 2, 3], kind: interview-and-test}
+  - {id: AUM-2, title: "Appropriate authentication mechanisms", parts: [1, 2, 3], kind: interview-and-test}
+  - {id: AUM-3, title: "Authenticator validation", parts: [1, 2, 3], kind: interview-and-test}
+  - {id: AUM-4, title: "Changing authenticators", parts: [1, 2, 3], kind: interview-and-test}
+  - {id: AUM-6, title: "Brute force protection", parts: [1, 2, 3], kind: test}
+  - {id: SUM-1, title: "Applicability of update mechanisms", parts: [1, 2, 3], kind: signal, claims: ['repo.firmware']}
+  - {id: SUM-2, title: "Secure updates", parts: [1, 2, 3], kind: interview-and-test}
+  - {id: SUM-3, title: "Automated updates", parts: [1, 2, 3], kind: interview}
+  - {id: SSM-1, title: "Applicability of secure storage mechanisms", parts: [1, 2, 3], kind: interview}
+  - {id: SSM-2, title: "Appropriate integrity protection for secure storage mechanisms", parts: [1, 2, 3], kind: interview-and-test}
+  - {id: SSM-3, title: "Appropriate confidentiality protection for secure storage mechanisms", parts: [1, 2, 3], kind: interview-and-test}
+  - {id: SCM-1, title: "Applicability of secure communication mechanisms", parts: [1, 2, 3], kind: interview}
+  - {id: SCM-2, title: "Appropriate integrity and authenticity protection for secure communication mechanisms", parts: [1, 2, 3], kind: signal, claims: ['scan.sbom', 'repo.firmware']}
+  - {id: SCM-3, title: "Appropriate confidentiality protection for secure communication mechanisms", parts: [1, 2, 3], kind: signal, claims: ['scan.sbom', 'repo.firmware']}
+  - {id: SCM-4, title: "Appropriate replay protection for secure communication mechanisms", parts: [1, 2, 3], kind: interview-and-test}
+  - {id: RLM-1, title: "Applicability and appropriateness of resilience mechanisms", parts: [1], kind: test}
+  - {id: NMM-1, title: "Applicability and appropriateness of network monitoring mechanisms", parts: [1], kind: interview-and-test}
+  - {id: TCM-1, title: "Applicability of and appropriate traffic control mechanisms", parts: [1], kind: interview-and-test}
+  - {id: CCK-1, title: "Appropriate CCKs", parts: [1, 2, 3], kind: interview}
+  - {id: CCK-2, title: "CCK generation mechanisms", parts: [1, 2, 3], kind: interview}
+  - {id: CCK-3, title: "Preventing static default values for preinstalled CCKs", parts: [1, 2, 3], kind: interview-and-test}
+  - {id: GEC-1, title: "Up-to-date software and hardware with no publicly known exploitable vulnerabilities", parts: [1, 2, 3], kind: evidence, claims: ['scan.sbom', 'scan.vulnerabilities', 'scan.fixes', 'scan.kev', 'repo.firmware', 'repo.dependency-updates']}
+  - {id: GEC-2, title: "Limit exposure of services via related network interfaces", parts: [1, 2, 3], kind: interview-and-test}
+  - {id: GEC-3, title: "Configuration of optional services and the related exposed network interfaces", parts: [1, 2, 3], kind: interview-and-test}
+  - {id: GEC-4, title: "Documentation of exposed network interfaces and exposed services via network interfaces", parts: [1, 2, 3], kind: interview}
+  - {id: GEC-5, title: "No unnecessary external interfaces", parts: [1, 2, 3], kind: interview-and-test}
+  - {id: GEC-6, title: "Input validation", parts: [1, 2, 3], kind: interview-and-test}
+  - {id: CRY-1, title: "Best practice cryptography", parts: [1, 2, 3], kind: signal, claims: ['scan.sbom', 'repo.firmware']}
+  - {id: ACM-3, title: "Default access control for children in toys", parts: [2], kind: interview-and-test}
+  - {id: ACM-4, title: "Default access control to children's privacy assets for toys and childcare equipment", parts: [2], kind: interview-and-test}
+  - {id: ACM-5, title: "Parental/Guardian access controls for children in toys", parts: [2], kind: interview-and-test}
+  - {id: ACM-6, title: "Parental/Guardian access controls for other entities' access to managed children's privacy assets in toys", parts: [2], kind: interview-and-test}
+  - {id: LGM-1, title: "Applicability of logging mechanisms", parts: [2, 3], kind: interview}
+  - {id: LGM-2, title: "Persistent storage of log data", parts: [2, 3], kind: interview-and-test}
+  - {id: LGM-3, title: "Minimum number of persistently stored events", parts: [2, 3], kind: test}
+  - {id: LGM-4, title: "Time-related information of persistently stored log data", parts: [2, 3], kind: test}
+  - {id: DLM-1, title: "Applicability of deletion mechanisms", parts: [2], kind: interview-and-test}
+  - {id: UNM-1, title: "Applicability of user notification mechanisms", parts: [2], kind: interview}
+  - {id: UNM-2, title: "Appropriate user notification content", parts: [2], kind: interview}
+  - {id: GEC-7, title: "Documentation of external sensing capabilities", parts: [2], kind: interview}
+  - {id: GEC-8, title: "Equipment Integrity", parts: [3], kind: interview-and-test}

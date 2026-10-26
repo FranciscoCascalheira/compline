@@ -28,6 +28,7 @@ import yaml  # D5: the only third-party dependency
 
 ROOT = Path(__file__).resolve().parent
 QUESTIONS = ROOT / 'interview' / 'questions.yaml'
+EN18031 = ROOT / 'interview' / 'en18031.yaml'  # D16
 KEV_URL = 'https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json'
 SEVERITIES = ('Critical', 'High', 'Medium', 'Low', 'Negligible', 'Unknown')
 
@@ -607,6 +608,14 @@ def render(annex):
         label = f"{it['id'][0]}({it['id'][1]})" if len(it['id']) == 2 else it['id']
         lines += ['', f"### {label} {it['title']}", '']
         lines += [f"- {c['text']} {' '.join(tag(s) for s in c['sources'])}".rstrip() for c in it['claims']]
+    if annex.get('en18031'):
+        lines += ['', '## Radio Equipment Directive: EN 18031, requirement by requirement', '',
+                  'For radio equipment under Delegated Regulation (EU) 2022/30. Which part applies (1, 2 or 3) depends on the product. '
+                  'No requirement is marked as met: each needs the decision-tree answer and its justification from the manufacturer\'s engineer, '
+                  'and some a test report. This list says where each answer has to come from.', '',
+                  '| Requirement | Parts | Where the answer comes from | Claims in this file |', '| --- | --- | --- | --- |']
+        lines += [f"| [{r['id']}] {r['title']} | {', '.join(map(str, r['parts']))} | {RED_STATUS[r['status']]} | {', '.join(r['claims']) or '-'} |"
+                  for r in annex['en18031']]
     lines += ['', '## Evidence index', '', '| Artefact | SHA-256 |', '| --- | --- |']
     lines += [f"| {a['file']} | `{a['sha256']}` |" for a in annex['artefacts'].values()]
     lines += [f"| manifest.json | `{annex['manifest_sha256']}` |", '',
@@ -614,8 +623,30 @@ def render(annex):
     return '\n'.join(lines)
 
 
+RED_STATUS = {
+    'evidence': 'supported in part by this file',
+    'signal': 'the scan names something relevant but proves nothing; to establish in the interview',
+    'interview': 'to establish in the interview',
+    'test': 'needs a test report',
+    'interview-and-test': 'to establish in the interview, with a test report',
+}
+
+
+def red_requirements(annex):
+    """Every EN 18031 requirement, with the claims of this file that bear on it; nothing is marked met (D16)."""
+    present = {c['key'] for it in annex['items'] for c in it['claims'] if c['status'] == 'evidence'}
+    out = []
+    for r in read_yaml(EN18031)['requirements']:
+        cited = [k for k in r.get('claims', []) if k in present]
+        status = r['kind'] if cited or r['kind'] not in ('evidence', 'signal') else 'interview'
+        out.append({'id': r['id'], 'title': r['title'], 'parts': r['parts'], 'status': status, 'claims': cited})
+    return out
+
+
 def cmd_annex(a):
     annex = build_annex(a.evidence, a.answers)
+    if a.red:
+        annex['en18031'] = red_requirements(annex)
     problems = parity_problems(annex)
     if problems:
         die('annex refused, parity check failed:\n  ' + '\n  '.join(problems))
@@ -698,6 +729,7 @@ def main(argv=None):
     s.add_argument('evidence')
     s.add_argument('--answers')
     s.add_argument('--out', default='annex-vii.md')
+    s.add_argument('--red', action='store_true', help='add the EN 18031 requirements of the Radio Equipment Directive (D16)')
     s.set_defaults(func=cmd_annex)
     s = sub.add_parser('interview', help='check interview answers and list the questions still to ask')
     s.add_argument('--answers')
