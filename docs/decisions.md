@@ -73,3 +73,14 @@ Syft does not read the manifests that embedded C firmware uses to declare its SD
 Measured on 26/10/2026 with real Syft and Grype: ESPresense, 10 components declared and none pinned (no lock file in the repository); the Zephyr example, 4 declared, none pinned (revision `main`); `jmharvey1/ESP32BtCWKeyBrd`, ESP-IDF 4.4.4 pinned by its lock file, 15 vulnerability matches where the SBOM before D14 had no firmware component at all.
 
 Not covered yet: git submodules, code copied into the repository without a manifest, PlatformIO `platformio.ini`, Yocto and Buildroot. Those still come from the interview.
+
+## D15, 26/10/2026. More of the firmware: the SDK version the build uses, git submodules, PlatformIO, and NVD names for common C libraries
+
+Extends D14 on the same rule: only an exact release (lock file, release tag, or `name@1.2.3`) is a version; ranges, branches and commits are kept as written.
+
+- **ESP-IDF without a lock file.** The SDK version is taken from the build configuration when it names exactly one release tag: the `esp_idf_version` input of `espressif/esp-idf-ci-action` (including `${{ env.NAME }}`), an `espressif/idf:` container or image, or a Dockerfile `FROM`. Two different tags (a build matrix) prove neither; a branch such as `release-v5.4` is not a version. The claim names the file and the manifest's own constraint. On ESPresense this gives ESP-IDF 5.4.4 from `.github/workflows/build.yml` and 8 vulnerability matches in the SDK (26/10/2026).
+- **Git submodules.** `.gitmodules` plus the commit the parent repository pins; a version only when that commit carries a release tag in a checked-out submodule.
+- **PlatformIO.** `platform`, `platform_packages` and `lib_deps` of every `[env]`, after `${section.key}`, `extends`, the `[env]` defaults and `extra_configs`, as the build reads them; libraries listed but used by no environment are left out. GitHub archive and release URLs give a version when the ref is a release tag and a commit otherwise. On OpenMQTTGateway: 47 components, 23 pinned (26/10/2026).
+- **NVD names.** Besides ESP-IDF and Zephyr, CPEs for Mbed TLS, wolfSSL, OpenSSL, libcurl, Apache NimBLE, FreeRTOS, arduino-esp32, zlib, lwIP and cJSON. Each was kept only after Grype 0.121.0, with its database of 25/10/2026, matched an old release of it; `lwip:lwip` and littlefs matched nothing and were left out. Libraries without an NVD name (most Arduino libraries) are listed in the SBOM and matched by nobody, which the file does not hide.
+
+Still not read: code copied into the repository without any manifest, Yocto, Buildroot.

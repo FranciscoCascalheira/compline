@@ -121,6 +121,7 @@ class Firmware(unittest.TestCase):
         cdx = compline.cyclonedx(comps)
         self.assertEqual(cdx[0]['cpe'], 'cpe:2.3:a:espressif:esp-idf:5.4.1:*:*:*:*:*:*:*')
         self.assertNotIn('cpe', cdx[1])  # no NVD name known for registry components
+        self.assertEqual([compline.nvd_name(n) for n in ('ARMmbed/mbedtls', 'curl', 'mynewt-nimble', 'littlefs')], ['mbedtls', 'libcurl', 'nimble', None])
         self.assertTrue(all(c['type'] == 'library' for c in cdx))
 
     def test_manifest_without_lock_keeps_constraints_and_claims_no_version(self):
@@ -131,6 +132,57 @@ class Firmware(unittest.TestCase):
         self.assertEqual([(c['name'], c['version'], c['resolved']) for c in comps],
                          [('esp-idf', '>=5.4', False), ('espressif/ds18b20', '^0.4.0', False), ('local/x', '~1.2', False)])
         self.assertFalse(any('cpe' in c for c in compline.cyclonedx(comps)))
+
+    def test_without_a_lock_the_sdk_version_comes_from_one_exact_tag_in_the_build(self):
+        manifest = {'main/idf_component.yml': 'dependencies:\n  idf: ">=5.4"\n'}
+        ci = ('env:\n  IDF_VERSION: v5.4.4\njobs:\n  build:\n    steps:\n'
+              '      - uses: espressif/esp-idf-ci-action@v1\n        with:\n          esp_idf_version: ${{ env.IDF_VERSION }}\n')
+        sdk = lambda files: [c for c in compline.firmware_components(self.tree({**manifest, **files})) if c['name'] == 'esp-idf'][0]
+
+        c = sdk({'.github/workflows/build.yml': ci})
+        self.assertEqual((c['version'], c['resolved'], c['source'], c['constraint']), ('5.4.4', True, '.github/workflows/build.yml', '>=5.4'))
+        self.assertEqual(sdk({'Dockerfile': 'FROM espressif/idf:v5.3.2\n'})['version'], '5.3.2')
+        self.assertFalse(sdk({'Dockerfile': 'FROM espressif/idf:release-v5.4\n'})['resolved'])  # a branch is not a version
+        matrix = {'.github/workflows/a.yml': ci, 'Dockerfile': 'FROM espressif/idf:v5.3.2\n'}
+        self.assertFalse(sdk(matrix)['resolved'])  # two versions in the build prove neither
+        locked = sdk({'.github/workflows/build.yml': ci, 'dependencies.lock': 'dependencies:\n  idf:\n    version: 5.4.1\n'})
+        self.assertEqual((locked['version'], locked['source']), ('5.4.1', 'dependencies.lock'))
+
+    def test_platformio_exact_versions_are_pinned_and_ranges_are_not(self):
+        ini = ('[env]\nplatform = espressif32@6.5.0\nlib_deps =\n    bblanchon/ArduinoJson@^6.21.6\n    knolleary/PubSubClient@2.8\n'
+               '[env:s3]\nplatform = espressif32@6.5.0\n')
+        comps = compline.firmware_components(self.tree({'platformio.ini': ini}))
+        self.assertEqual([(c['name'], c['version'], c['resolved']) for c in comps],
+                         [('espressif32', '6.5.0', True), ('bblanchon/ArduinoJson', '^6.21.6', False), ('knolleary/PubSubClient', '2.8', True)])
+
+    def test_platformio_resolves_references_extends_and_extra_configs_like_the_build(self):
+        ini = ('[platformio]\nextra_configs = envs.ini\n'
+               '[libraries]\njson = ArduinoJson@6.18.5\nunused = Never@1.0.0\n'
+               'ble = https://github.com/h2zero/NimBLE-Arduino/archive/2.5.0.zip\nlog = https://github.com/x/Arduino-Log/archive/6d1f14a.zip\n'
+               '[com]\nesp32 = https://github.com/pioarduino/platform-espressif32/releases/download/55.03.39/platform-espressif32.zip\n'
+               '[env]\nlib_deps =\n  ${libraries.json} ; comment\n  ${libraries.log}\n'
+               '[base]\nplatform = ${com.esp32}\nlib_deps =\n  ${env.lib_deps}\n  ${libraries.ble}\n')
+        t = self.tree({'platformio.ini': ini, 'envs.ini': '[env:board]\nextends = base\n'})
+        self.assertEqual(sorted(compline.platformio_components(t / 'platformio.ini')),
+                         [('Arduino-Log', 'commit 6d1f14a', False), ('ArduinoJson', '6.18.5', True), ('NimBLE-Arduino', '2.5.0', True),
+                          ('platform-espressif32', '55.03.39', True)])
+
+    def test_submodule_is_a_version_only_when_its_commit_carries_a_release_tag(self):
+        git = lambda cwd, *a: subprocess.run(['git', '-c', 'user.name=t', '-c', 'user.email=t@t', '-c', 'protocol.file.allow=always', *a],
+                                             cwd=cwd, check=True, capture_output=True)
+        root = self.tree({'lib/README': 'x\n', 'fw/main.c': 'int main(void) { return 0; }\n'})
+        lib, fw = root / 'lib', root / 'fw'
+        for repo in (lib, fw):
+            git(repo, 'init', '-q')
+        git(lib, 'add', '.'); git(lib, 'commit', '-qm', 'lib'); git(lib, 'tag', 'v2.28.1')
+        git(fw, 'submodule', 'add', '-q', str(lib), 'third_party/mbedtls'); git(fw, 'add', '.'); git(fw, 'commit', '-qm', 'fw')
+        [c] = compline.firmware_components(fw)
+        self.assertEqual((c['name'], c['version'], c['resolved'], c['ecosystem']), ('lib', '2.28.1', True, 'git-submodule'))
+        git(lib, 'commit', '-q', '--allow-empty', '-m', 'untagged'); git(fw / 'third_party' / 'mbedtls', 'pull', '-q', 'origin', 'HEAD')
+        git(fw, 'commit', '-qam', 'bump')
+        [c] = compline.firmware_components(fw)
+        self.assertFalse(c['resolved'])
+        self.assertTrue(c['version'].startswith('commit '))
 
     def test_west_tag_is_a_version_and_a_branch_is_not(self):
         t = self.tree({'west.yml': 'manifest:\n  projects:\n'
@@ -163,7 +215,7 @@ class Firmware(unittest.TestCase):
             self.assertEqual([c['name'] for c in seen['components']], ['esp-idf'])
             self.assertEqual(json.loads(raw(tmp / 'ev', 'repo.json'))['firmware'][0]['source'], 'main/idf_component.yml')
             claims = {c['key']: c['text'] for item in compline.build_annex(tmp / 'ev')['items'] for c in item['claims'] if c['status'] == 'evidence'}
-            self.assertIn('1 firmware components are declared', claims['repo.firmware'])
+            self.assertIn('1 firmware component is declared', claims['repo.firmware'])
             self.assertIn('esp-idf >=5.4', claims['repo.firmware'])
             self.assertIn('not known from the repository', claims['repo.firmware'])
 

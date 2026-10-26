@@ -9,6 +9,7 @@
 D<n> refers to docs/decisions.md. This is a draft generator for engineer review, not legal advice.
 """
 import argparse
+import configparser
 import datetime
 import gzip
 import hashlib
@@ -122,11 +123,112 @@ def runtime_packages(target):
 
 
 # Firmware manifests that Syft does not read, and the NVD names Grype matches them by (D14).
+# Each name was checked against Grype 0.121.0 with its database of 25/10/2026: an old release of it gets matches (D14, D15).
 FIRMWARE_CPES = {
     'esp-idf': 'cpe:2.3:a:espressif:esp-idf:{}:*:*:*:*:*:*:*',
     'zephyr': 'cpe:2.3:o:zephyrproject:zephyr:{}:*:*:*:*:*:*:*',
+    'mbedtls': 'cpe:2.3:a:arm:mbed_tls:{}:*:*:*:*:*:*:*',
+    'wolfssl': 'cpe:2.3:a:wolfssl:wolfssl:{}:*:*:*:*:*:*:*',
+    'openssl': 'cpe:2.3:a:openssl:openssl:{}:*:*:*:*:*:*:*',
+    'libcurl': 'cpe:2.3:a:haxx:libcurl:{}:*:*:*:*:*:*:*',
+    'nimble': 'cpe:2.3:a:apache:nimble:{}:*:*:*:*:*:*:*',
+    'freertos': 'cpe:2.3:a:amazon:freertos:{}:*:*:*:*:*:*:*',
+    'arduino-esp32': 'cpe:2.3:a:espressif:arduino-esp32:{}:*:*:*:*:*:*:*',
+    'zlib': 'cpe:2.3:a:zlib:zlib:{}:*:*:*:*:*:*:*',
+    'lwip': 'cpe:2.3:a:lwip_project:lwip:{}:*:*:*:*:*:*:*',
+    'cjson': 'cpe:2.3:a:cjson_project:cjson:{}:*:*:*:*:*:*:*',
 }
+CPE_ALIASES = {'mbed-tls': 'mbedtls', 'curl': 'libcurl', 'mynewt-nimble': 'nimble', 'freertos-kernel': 'freertos',
+               'framework-arduinoespressif32': 'arduino-esp32'}
+
+
+def nvd_name(name):
+    """The FIRMWARE_CPES key for a declared component name, or None (espressif/esp-idf, ARMmbed/mbedtls and mbedtls are one name)."""
+    base = name.lower().rsplit('/', 1)[-1]
+    base = CPE_ALIASES.get(base, base)
+    return base if base in FIRMWARE_CPES else None
 SKIP_DIRS = {'.git', 'build', 'managed_components', 'node_modules', 'test', 'tests', 'examples'}  # what does not ship
+
+
+def idf_build_pins(target):
+    """(version, file) for every exact ESP-IDF release tag the build configuration uses: the esp-idf-ci-action input,
+    an espressif/idf container image, or a Dockerfile FROM. Branches such as release-v5.4 are not versions (D15)."""
+    target = Path(target)
+    tag = lambda s: (m.group(1) if (m := re.fullmatch(r'v?(\d+\.\d+(?:\.\d+)?)', str(s).strip())) else None)
+    image = lambda s: tag(m.group(1)) if (m := re.search(r'espressif/idf:(\S+)', str(s))) else None
+    pins = []
+
+    def note(version, path):
+        if version:
+            pins.append((version, path.relative_to(target).as_posix()))
+
+    for wf in sorted([*target.glob('.github/workflows/*.yml'), *target.glob('.github/workflows/*.yaml')]):
+        doc = yaml.safe_load(wf.read_text(encoding='utf8')) or {}
+        for job in (doc.get('jobs') or {}).values():
+            env = {**(doc.get('env') or {}), **(job.get('env') or {})}
+            container = job.get('container')
+            note(image(container.get('image') if isinstance(container, dict) else container), wf)
+            for step in job.get('steps') or []:
+                if str(step.get('uses', '')).startswith('espressif/esp-idf-ci-action'):
+                    value = str((step.get('with') or {}).get('esp_idf_version', ''))
+                    ref = re.fullmatch(r'\$\{\{\s*env\.(\w+)\s*\}\}', value)
+                    note(tag({**env, **(step.get('env') or {})}.get(ref.group(1), '') if ref else value), wf)
+    for path in [target / '.gitlab-ci.yml', *sorted(target.glob('Dockerfile*')), *sorted(target.glob('.devcontainer/Dockerfile*'))]:
+        if path.is_file():
+            for line in path.read_text(encoding='utf8', errors='replace').splitlines():
+                if re.match(r'\s*(FROM|image:)', line):
+                    note(image(line), path)
+    return pins
+
+
+def pio_spec(spec):
+    """(name, version, pinned) of one PlatformIO platform or library spec: Name@1.2.3, owner/Name@^1.2, or a GitHub archive or release URL."""
+    spec = spec.split(' ;')[0].strip()
+    if not spec:
+        return None
+    name, _, ver = (s.strip() for s in spec.partition('@'))
+    url = name if '://' in name else ver if '://' in ver else None
+    if url:
+        gh = re.search(r'github\.com/[^/]+/([^/]+)/(?:archive|releases/download)/(?:refs/tags/)?([^/]+?)(?:\.zip|\.tar\.gz)?(?:/|$)', url)
+        ref = gh.group(2) if gh else 'unknown'
+        name = name if name != url else (gh.group(1) if gh else url.rstrip('/').rsplit('/', 1)[-1])
+        ver = ref
+    exact = re.fullmatch(r'v?(\d+(?:\.\d+){1,2})', ver)
+    if exact:
+        return name, exact.group(1), True
+    if re.fullmatch(r'[0-9a-f]{7,40}', ver):
+        return name, f'commit {ver}', False
+    return name, ver or '*', False
+
+
+def platformio_components(ini):
+    """Platforms and libraries used by any [env] of a platformio.ini, after ${section.key}, extends and extra_configs (D15)."""
+    cfg = configparser.ConfigParser(interpolation=None, strict=False, inline_comment_prefixes=(' ;',))
+    cfg.read(ini, encoding='utf8')
+    extra = cfg.get('platformio', 'extra_configs', fallback='')
+    cfg.read([p for pattern in extra.split() for p in sorted(ini.parent.glob(pattern)) if not SKIP_DIRS & set(p.relative_to(ini.parent).parts)], encoding='utf8')
+
+    def get(section, key, depth=0):
+        if depth > 10 or not cfg.has_section(section):
+            return ''
+        if cfg.has_option(section, key):
+            value = cfg.get(section, key)
+        else:
+            parents = [s.strip() for s in cfg.get(section, 'extends', fallback='').split(',') if s.strip()]
+            value = next((v for v in (get(s, key, depth + 1) for s in parents) if v), '')
+            if not value and section.startswith('env:'):
+                value = get('env', key, depth + 1)
+        return re.sub(r'\$\{([^.}]+)\.([^}]+)\}', lambda m: get(m.group(1), m.group(2), depth + 1), value)
+
+    found = {}
+    for section in cfg.sections():
+        if section == 'env' or section.startswith('env:'):
+            for key in ('platform', 'platform_packages', 'lib_deps'):
+                for line in get(section, key).replace(',', '\n').splitlines():
+                    spec = pio_spec(line)
+                    if spec:
+                        found.setdefault(spec, None)
+    return list(found)
 
 
 def firmware_components(target):
@@ -151,6 +253,25 @@ def firmware_components(target):
         for manifest in found('idf_component.yml'):
             for name, spec in ((yaml.safe_load(manifest.read_text(encoding='utf8')) or {}).get('dependencies') or {}).items():
                 add(name, spec.get('version', '*') if isinstance(spec, dict) else spec, False, manifest, 'esp-idf')
+    sdk = [c for c in comps if c['name'] == 'esp-idf' and not c['resolved']]
+    pins = idf_build_pins(target) if sdk else []
+    if sdk and len({v for v, _ in pins}) == 1:  # one exact tag in the build configuration; several (a matrix) prove nothing
+        version, where = pins[0]
+        for c in sdk:
+            c.update(constraint=c['version'], version=version, resolved=True, source=where)
+    gitmodules = target / '.gitmodules'
+    if gitmodules.is_file():  # D15: vendored libraries pinned by commit
+        for path, url in re.findall(r'path\s*=\s*(\S+)\s*\n\s*url\s*=\s*(\S+)', gitmodules.read_text(encoding='utf8')):
+            entry = (git(target, 'ls-tree', 'HEAD', path) or '').split()
+            commit = entry[2] if len(entry) > 2 else 'unknown'
+            tag = git(target / path, 'describe', '--tags', '--exact-match', commit) if (target / path / '.git').exists() else None
+            version = re.fullmatch(r'v?(\d+\.\d+(?:\.\d+)?)', tag or '')
+            comps.append({'name': url.rstrip('/').removesuffix('.git').rsplit('/', 1)[-1], 'version': version.group(1) if version else f'commit {commit[:12]}',
+                          'resolved': bool(version), 'source': '.gitmodules', 'ecosystem': 'git-submodule'})
+    for ini in found('platformio.ini'):  # D15: what the build environments actually use
+        for name, version, pinned in platformio_components(ini):
+            comps.append({'name': name, 'version': version, 'resolved': pinned, 'source': ini.relative_to(target).as_posix(),
+                          'ecosystem': 'platformio'})
     for west in found('west.yml'):
         manifest = (yaml.safe_load(west.read_text(encoding='utf8')) or {}).get('manifest') or {}
         default = (manifest.get('defaults') or {}).get('revision', 'master')
@@ -171,8 +292,8 @@ def cyclonedx(firmware):
         entry = {'type': 'library', 'bom-ref': f"compline-firmware-{i}", 'name': c['name'], 'version': c['version'],
                  'properties': [{'name': 'compline:source', 'value': c['source']}, {'name': 'compline:ecosystem', 'value': c['ecosystem']},
                                 {'name': 'compline:resolved', 'value': str(c['resolved']).lower()}]}
-        if c['resolved'] and c['name'] in FIRMWARE_CPES:
-            entry['cpe'] = FIRMWARE_CPES[c['name']].format(c['version'])
+        if c['resolved'] and nvd_name(c['name']):
+            entry['cpe'] = FIRMWARE_CPES[nvd_name(c['name'])].format(c['version'])
         out.append(entry)
     return out
 
@@ -344,13 +465,15 @@ def scan_claims(m, d):
     if firmware:
         pinned = [c for c in firmware if c['resolved']]
         loose = [c for c in firmware if not c['resolved']]
-        named = lambda cs: listed([f"{c['name']} {c['version']}" for c in cs])
+        named = lambda cs: listed([f"{c['name']} {c['version']}" + (f" (from {c['source']}; the manifest asks {c['constraint']})" if c.get('constraint') else '')
+                                   for c in cs])
         keys = {(c['name'], c['version']) for c in firmware}
         hits = sum(1 for x in d['grype'].get('matches', []) if (x['artifact']['name'], x['artifact']['version']) in keys)
-        text = (f"{len(firmware)} firmware components are declared in manifests the SBOM tool does not read "
+        n = len(firmware)
+        text = (f"{n} firmware component{'s are' if n != 1 else ' is'} declared in manifests the SBOM tool does not read "
                 f"({listed(sorted({c['source'] for c in firmware}))}) and were added to the SBOM, each marked with its source file: "
                 f"{len(pinned)} with a pinned version" + (f" ({named(pinned)})" if pinned else '') +
-                f", {len(loose)} with only a version constraint or a branch" + (f" ({named(loose)})" if loose else '') +
+                f", {len(loose)} without a release version (a constraint, a branch or a commit)" + (f" ({named(loose)})" if loose else '') +
                 f". {hits} of the vulnerability matches are in these components." +
                 (' Without a lock file or a release tag, the exact versions of the others are not known from the repository; see the interview.' if loose else ''))
         claims.append(('2b', 'repo.firmware', text, ev(m, 'sbom', 'grype', 'repo')))
