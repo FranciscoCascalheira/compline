@@ -1,86 +1,78 @@
 # Compline
 
-**Compline writes and maintains the Cyber Resilience Act technical file for a manufacturer, from its repository.**
+**Compline drafts and keeps current the Cyber Resilience Act technical file of a product, from its repository.**
 
 [![ci](https://github.com/FranciscoCascalheira/compline/actions/workflows/ci.yml/badge.svg)](https://github.com/FranciscoCascalheira/compline/actions/workflows/ci.yml)
 &nbsp;MIT licensed &nbsp;·&nbsp; early stage &nbsp;·&nbsp; not legal advice
 
-From 11 December 2027, every product with digital elements sold in the EU needs a cybersecurity technical file (CRA, Regulation (EU) 2024/2847, Annex VII) to keep its CE mark. Reporting duties under Article 14 already apply since 11 September 2026. Today that file is written by hand, by consultants, once. Scanners list components and flaws, and nobody keeps the two in sync.
+Radio equipment that connects to the internet has had cybersecurity requirements under the Radio Equipment Directive since August 2025 (Delegated Regulation (EU) 2022/30). From 11 December 2027 the Cyber Resilience Act (Regulation (EU) 2024/2847) takes over and covers every product with digital elements placed on the EU market, except medical devices, vehicles, certified aviation products and marine equipment. Its Annex VII lists what the technical file must contain, and Article 31 says the file must be kept up to date during the support period. Reporting duties under Article 14 already apply since 11 September 2026.
 
-Compline closes that loop:
+Compline builds that file from what the repository can prove, asks the team for the rest, and redoes it on every release:
 
-1. **Scan** the repository: CycloneDX SBOM, known flaws, CISA KEV and FIRST EPSS.
-2. **Interview** the team: 10 to 15 questions on architecture, updates and support period.
-3. **Draft** the Annex VII file with the scan as evidence. Every claim points at the artefact and commit it came from.
-4. **Review and sign**: an engineer signs. On every release the file is regenerated, and the diff is the audit trail.
+1. **Scan**: CycloneDX SBOM (Syft), known vulnerabilities (Grype), the CISA KEV catalogue, and process facts from the repository (security policy, dependency updates, CI, tests), hashed into an evidence bundle.
+2. **Interview**: a question for every Annex VII point the scan cannot prove. An answer needs a source, a URL or a person with a date.
+3. **Annex**: all 13 points of Annex VII, each claim tied to the artefact hash or the source it came from. Anything unanswered stays PENDING, as a question.
+4. **Diff**: on the next release, what changed in components, vulnerabilities and claims. Kept with both files, that is the audit trail.
 
-## Status
+An engineer reviews and signs. Compline never decides whether a product conforms.
 
-| Step | State | In this repo |
-| --- | --- | --- |
-| Scan: SBOM, CVEs, KEV, EPSS | Working | [`scan.mjs`](./scan.mjs), real run in [`relatorio.md`](./relatorio.md) |
-| Annex VII draft from the scan | First version | [`annex7.py`](./annex7.py), output in [`annex-vii-draft.md`](./annex-vii-draft.md), tests in [`test_annex7.py`](./test_annex7.py) |
-| Agent interview for the remaining sections | Building, 27 Oct to 14 Dec 2026 | |
-| Regeneration and diff on every release | Building | |
-| First technical file for a manufacturer | Target 14 Dec 2026 | |
-
-## The proof
-
-A real scan of OWASP NodeGoat, a deliberately outdated demo app, run on 24 October 2026:
-
-![Compline scan output on OWASP NodeGoat](docs/scan-nodegoat.png)
-
-- **422** components in the SBOM.
-- **105** known vulnerabilities: 14 critical, 58 high, 23 medium, 10 low.
-- **77** unique CVEs checked against the CISA KEV catalogue (version 2026.10.23). None was actively exploited at run time, so no Article 14 clock was running.
-- Highest EPSS score in that run: `CVE-2020-7774` (y18n), 0.69377.
-- About 3 seconds for SBOM plus scan.
-
-The next day, `annex7.py` turned that report into the first draft of the technical file:
-
-![First Annex VII draft generated from the scan](docs/annex-vii-draft.png)
-
-- **9** claims filled from the scan, each tagged with the source file, its SHA-256 and the commit.
-- **13** items that depend on the team interview, marked `PENDING` rather than invented.
-- All **8** Annex VII sections, in the order of the regulation.
-
-These numbers describe NodeGoat, not a customer product.
-
-## Run it
-
-You need Node.js 18 or later, Python 3.10 or later, and [Syft](https://github.com/anchore/syft) and [Grype](https://github.com/anchore/grype) on your `PATH` (or set `SYFT_BIN` and `GRYPE_BIN`). The scan queries the public CISA KEV feed and the FIRST EPSS API, so it needs internet access.
+## Try it (offline, about a second)
 
 ```bash
-git clone https://github.com/FranciscoCascalheira/compline.git
-cd compline
-
-# a target to scan: OWASP NodeGoat is what the proof used
-git clone https://github.com/OWASP/NodeGoat.git exemplo-NodeGoat
-
-npm run scan     # writes sbom.cdx.json, vulns.json and relatorio.md
-npm run annex    # writes annex-vii-draft.md from relatorio.md
-npm test         # checks the draft against the report
+git clone https://github.com/FranciscoCascalheira/compline.git && cd compline
+pip install -r requirements.txt        # PyYAML
+bash demo.sh                           # writes demo/: the technical file and the 2.13.0 to 2.14.2 diff
 ```
 
-To scan another target, set `TARGET_DIR=/path/to/repo`. Generated SBOM, scan and feed files are git-ignored because they are large, dated or regenerable. The report text is in Portuguese, the language of the first proof; the technical file is in English.
+The demo rebuilds everything from the evidence bundles in `evidence/`, so it needs neither the scanners nor the network. The last step changes one artefact and shows that Compline refuses the bundle. Output of a run: [`demo/run.txt`](demo/run.txt), [`demo/annex-vii-zigbee2mqtt-2.14.2.md`](demo/annex-vii-zigbee2mqtt-2.14.2.md), [`demo/diff-zigbee2mqtt-2.13.0-2.14.2.md`](demo/diff-zigbee2mqtt-2.13.0-2.14.2.md).
+
+## The proof: Zigbee2MQTT, a Zigbee gateway
+
+[Zigbee2MQTT](https://github.com/Koenkk/zigbee2mqtt) bridges Zigbee radio devices to MQTT. It stands in for the software of a manufacturer's Zigbee hub (why this target: [D1](docs/decisions.md)). Scanned on 26 October 2026, version 2.14.2:
+
+- **278** components in the SBOM; **111** of them ship with the product according to `pnpm-lock.yaml`, the rest are build and test tools.
+- **18** known vulnerabilities, all with a fixed version upstream; **10** are in shipped packages (fast-uri, ip-address).
+- **0** of the 18 CVEs in the CISA KEV catalogue, version 2026.10.23.
+- No security policy file in the repository; Dependabot is configured; 9 CI workflows; 26 test files.
+- **7** of the 14 interview questions answered from the public documentation, each with its URL; **7** still PENDING (supported versions, production process, risk assessment, support period, standards, security tests, declaration of conformity).
+- From 2.13.0 to 2.14.2: 13 components added, 69 removed, 103 changed version; 3 vulnerabilities new, 44 resolved, 15 still present; 11 claims in the file changed.
+- Scan time: SBOM 2.4 s, vulnerability matching 3.7 s, recorded in the bundle's `manifest.json`.
+
+These numbers describe an open-source project read from its public documentation, not a customer's product, and not an interview with its maintainers.
+
+## Use it on your repository
+
+You need Python 3.12 or later with PyYAML, and [Syft](https://github.com/anchore/syft) and [Grype](https://github.com/anchore/grype) on your `PATH` (or `SYFT_BIN` and `GRYPE_BIN`).
+
+```bash
+./compline.py scan path/to/repo --out evidence/my-product-1.0 --version 1.0   # downloads the CISA KEV catalogue, or pass --kev FILE
+./compline.py interview --answers my-answers.yaml                               # checks sources, lists what is still to ask
+./compline.py annex evidence/my-product-1.0 --answers my-answers.yaml --out annex-vii.md
+./compline.py diff evidence/my-product-0.9 evidence/my-product-1.0 --answers my-answers.yaml
+npm test                                                                         # 18 tests, offline
+```
+
+Questions live in [`interview/questions.yaml`](interview/questions.yaml); [`interview/answers-zigbee2mqtt.yaml`](interview/answers-zigbee2mqtt.yaml) shows the answer format.
 
 ## Files
 
 | File | What it is |
 | --- | --- |
-| `scan.mjs` | Runs Syft and Grype, cross-checks every CVE with CISA KEV and FIRST EPSS, and writes `relatorio.md`. Node.js built-ins only. |
-| `relatorio.md` | The real report from the 24 October 2026 NodeGoat run. |
-| `annex7.py` | Drafts the CRA Annex VII technical file from the report, with evidence tags. Python standard library only. |
-| `annex-vii-draft.md` | The draft generated on 25 October 2026. |
-| `test_annex7.py` | Checks that the draft has every Annex VII section, that every scan claim carries the report hash, that the numbers match the report, and that interview sections stay `PENDING`. |
+| `compline.py` | The command line: `scan`, `annex`, `interview`, `diff`. |
+| `evidence/` | Evidence bundles for Zigbee2MQTT 2.13.0 and 2.14.2: gzipped artefacts plus `manifest.json` with their SHA-256. |
+| `interview/` | The question bank and the demo answers. |
+| `demo.sh`, `demo/` | The offline demo and the output of a run. |
+| `test_compline.py` | One test per command, parity over every Annex VII point, and tests that the checks themselves fail on broken input. |
+| `docs/decisions.md` | Numbered decisions; the code cites them as D1 to D13. |
+| `scan.mjs`, `relatorio.md`, `annex7.py`, `annex-vii-draft.md`, `test_annex7.py` | The first proof, on OWASP NodeGoat, 24 and 25 October 2026 (corrected on 26 October, see D13). |
 
 ## Limitations
 
-- This is an early technical proof, not a conformity assessment and not legal advice. Whether a product is in CRA scope, and whether an Article 14 deadline has started, needs case-by-case analysis.
-- The draft fills only what the scan can prove. Architecture, risk assessment, support period, standards and the declaration of conformity wait for the interview and an engineer's signature.
-- No deduplication of repeated component and CVE pairs across versions, and no normalisation between GitHub Security Advisory and NVD severities.
-- EPSS estimates the probability of future exploitation. Only KEV membership is treated as a proxy for "actively exploited".
-- See section 5 of `relatorio.md` for the full list as of the last run.
+- A draft for an engineer to review and sign. Not legal advice, not a conformity assessment.
+- The runtime and development split reads npm and pnpm lockfiles only; other ecosystems count every package ([D11](docs/decisions.md)).
+- Syft does not see vendored C code or binaries without package metadata; those need the interview.
+- KEV membership is a public signal of exploitation, not the Article 14 test ([D10](docs/decisions.md)).
+- No language model writes any part of the file yet ([D12](docs/decisions.md)).
 
 ## Team
 
