@@ -1,0 +1,292 @@
+# What changed between zigbee2mqtt 2.13.0 (fcbb7ff44bdc) and zigbee2mqtt 2.14.2 (5c0c1c60078e)
+
+Old evidence manifest sha256:26e6d982a79a, new evidence manifest sha256:6f20282db0a9. Keep both annexes and this diff: together they are the audit trail.
+
+## Components: 13 added, 69 removed, 103 changed version
+
+- added pkg:npm/%40esbuild/openharmony-arm64 0.28.2
+- added pkg:npm/%40napi-rs/lzma-linux-x64-gnu 1.5.1
+- added pkg:npm/%40rollup/rollup-linux-loong64-gnu 4.63.1
+- added pkg:npm/%40rollup/rollup-linux-loong64-musl 4.63.1
+- added pkg:npm/%40rollup/rollup-linux-ppc64-gnu 4.63.1
+- added pkg:npm/%40rollup/rollup-linux-ppc64-musl 4.63.1
+- added pkg:npm/%40rollup/rollup-openbsd-x64 4.63.1
+- added pkg:npm/%40rollup/rollup-openharmony-arm64 4.63.1
+- added pkg:npm/%40rollup/rollup-win32-x64-gnu 4.63.1
+- added pkg:npm/%40standard-schema/spec 1.1.0
+- added pkg:npm/convert-source-map 2.0.0
+- added pkg:npm/obug 2.2.1
+- added pkg:npm/srvx 1.0.5
+- removed pkg:npm/%40ampproject/remapping 2.3.0
+- removed pkg:npm/%40isaacs/cliui 8.0.2
+- removed pkg:npm/%40istanbuljs/schema 0.1.3
+- removed pkg:npm/%40jridgewell/gen-mapping 0.3.8
+- removed pkg:npm/%40jridgewell/set-array 1.2.1
+- removed pkg:npm/%40pkgjs/parseargs 0.11.0
+- removed pkg:npm/%40rollup/rollup-linux-loongarch64-gnu 4.44.0
+- removed pkg:npm/%40rollup/rollup-linux-powerpc64le-gnu 4.44.0
+- removed pkg:npm/%40types/finalhandler 1.2.4
+- removed pkg:npm/%40types/http-errors 2.0.5
+- removed pkg:npm/%40types/object-assign-deep 0.4.3
+- removed pkg:npm/%40types/serve-static 2.2.0
+- removed pkg:npm/ansi-regex 5.0.1, 6.2.2
+- removed pkg:npm/ansi-styles 4.3.0, 6.2.3
+- removed pkg:npm/balanced-match 1.0.2
+- removed pkg:npm/brace-expansion 2.1.0
+- removed pkg:npm/cac 6.7.14
+- removed pkg:npm/check-error 2.1.1
+- removed pkg:npm/cross-spawn 7.0.6
+- removed pkg:npm/deep-eql 5.0.2
+- removed pkg:npm/depd 2.0.0
+- removed pkg:npm/eastasianwidth 0.2.0
+- removed pkg:npm/ee-first 1.1.1
+- removed pkg:npm/emoji-regex 8.0.0, 9.2.2
+- removed pkg:npm/encodeurl 2.0.0
+- removed pkg:npm/escape-html 1.0.3
+- removed pkg:npm/etag 1.8.1
+- removed pkg:npm/express-static-gzip 3.0.1
+- removed pkg:npm/finalhandler 2.1.1
+- removed pkg:npm/foreground-child 3.3.1
+- removed pkg:npm/fresh 2.0.0
+- removed pkg:npm/glob 10.5.0
+- removed pkg:npm/http-errors 2.0.1
+- removed pkg:npm/is-fullwidth-code-point 3.0.0
+- removed pkg:npm/isexe 2.0.0
+- removed pkg:npm/istanbul-lib-source-maps 5.0.6
+- removed pkg:npm/jackspeak 3.4.3
+- removed pkg:npm/js-sdsl 4.3.0
+- removed pkg:npm/loupe 3.1.4
+- removed pkg:npm/mime-db 1.54.0
+- removed pkg:npm/mime-types 3.0.2
+- removed pkg:npm/minimatch 9.0.5
+- removed pkg:npm/minipass 7.1.2
+- removed pkg:npm/number-allocator 1.0.14
+- removed pkg:npm/object-assign-deep 0.4.0
+- removed pkg:npm/on-finished 2.4.1
+- removed pkg:npm/package-json-from-dist 1.0.1
+- removed pkg:npm/parseurl 1.3.3
+- removed pkg:npm/path-key 3.1.1
+- removed pkg:npm/path-scurry 1.11.1
+- removed pkg:npm/pathval 2.0.0
+- removed pkg:npm/range-parser 1.2.1
+- removed pkg:npm/send 1.2.1
+- removed pkg:npm/serve-static 2.2.1
+- removed pkg:npm/setprototypeof 1.2.0
+- removed pkg:npm/shebang-command 2.0.0
+- removed pkg:npm/shebang-regex 3.0.0
+- removed pkg:npm/signal-exit 4.1.0
+- removed pkg:npm/statuses 2.0.2
+- removed pkg:npm/string-width 4.2.3, 5.1.2
+- removed pkg:npm/strip-ansi 6.0.1, 7.1.2
+- removed pkg:npm/strip-literal 3.0.0
+- removed pkg:npm/test-exclude 7.0.1
+- removed pkg:npm/tinypool 1.1.1
+- removed pkg:npm/tinyspy 4.0.3
+- removed pkg:npm/toidentifier 1.0.1
+- removed pkg:npm/vite-node 3.2.4
+- removed pkg:npm/which 2.0.2
+- removed pkg:npm/wrap-ansi 7.0.0, 8.1.0
+- changed pkg:npm/%40babel/helper-string-parser: 7.27.1 -> 7.29.7
+- changed pkg:npm/%40babel/helper-validator-identifier: 7.27.1 -> 7.29.7
+- changed pkg:npm/%40babel/parser: 7.27.5 -> 7.29.8
+- changed pkg:npm/%40babel/types: 7.27.6 -> 7.29.8
+- changed pkg:npm/%40biomejs/biome: 2.5.3 -> 2.5.11
+- changed pkg:npm/%40biomejs/cli-darwin-arm64: 2.5.3 -> 2.5.11
+- changed pkg:npm/%40biomejs/cli-darwin-x64: 2.5.3 -> 2.5.11
+- changed pkg:npm/%40biomejs/cli-linux-arm64: 2.5.3 -> 2.5.11
+- changed pkg:npm/%40biomejs/cli-linux-arm64-musl: 2.5.3 -> 2.5.11
+- changed pkg:npm/%40biomejs/cli-linux-x64: 2.5.3 -> 2.5.11
+- changed pkg:npm/%40biomejs/cli-linux-x64-musl: 2.5.3 -> 2.5.11
+- changed pkg:npm/%40biomejs/cli-win32-arm64: 2.5.3 -> 2.5.11
+- changed pkg:npm/%40biomejs/cli-win32-x64: 2.5.3 -> 2.5.11
+- changed pkg:npm/%40esbuild/aix-ppc64: 0.25.5 -> 0.28.2
+- changed pkg:npm/%40esbuild/android-arm: 0.25.5 -> 0.28.2
+- changed pkg:npm/%40esbuild/android-arm64: 0.25.5 -> 0.28.2
+- changed pkg:npm/%40esbuild/android-x64: 0.25.5 -> 0.28.2
+- changed pkg:npm/%40esbuild/darwin-arm64: 0.25.5 -> 0.28.2
+- changed pkg:npm/%40esbuild/darwin-x64: 0.25.5 -> 0.28.2
+- changed pkg:npm/%40esbuild/freebsd-arm64: 0.25.5 -> 0.28.2
+- changed pkg:npm/%40esbuild/freebsd-x64: 0.25.5 -> 0.28.2
+- changed pkg:npm/%40esbuild/linux-arm: 0.25.5 -> 0.28.2
+- changed pkg:npm/%40esbuild/linux-arm64: 0.25.5 -> 0.28.2
+- changed pkg:npm/%40esbuild/linux-ia32: 0.25.5 -> 0.28.2
+- changed pkg:npm/%40esbuild/linux-loong64: 0.25.5 -> 0.28.2
+- changed pkg:npm/%40esbuild/linux-mips64el: 0.25.5 -> 0.28.2
+- changed pkg:npm/%40esbuild/linux-ppc64: 0.25.5 -> 0.28.2
+- changed pkg:npm/%40esbuild/linux-riscv64: 0.25.5 -> 0.28.2
+- changed pkg:npm/%40esbuild/linux-s390x: 0.25.5 -> 0.28.2
+- changed pkg:npm/%40esbuild/linux-x64: 0.25.5 -> 0.28.2
+- changed pkg:npm/%40esbuild/netbsd-arm64: 0.25.5 -> 0.28.2
+- changed pkg:npm/%40esbuild/netbsd-x64: 0.25.5 -> 0.28.2
+- changed pkg:npm/%40esbuild/openbsd-arm64: 0.25.5 -> 0.28.2
+- changed pkg:npm/%40esbuild/openbsd-x64: 0.25.5 -> 0.28.2
+- changed pkg:npm/%40esbuild/sunos-x64: 0.25.5 -> 0.28.2
+- changed pkg:npm/%40esbuild/win32-arm64: 0.25.5 -> 0.28.2
+- changed pkg:npm/%40esbuild/win32-ia32: 0.25.5 -> 0.28.2
+- changed pkg:npm/%40esbuild/win32-x64: 0.25.5 -> 0.28.2
+- changed pkg:npm/%40jridgewell/sourcemap-codec: 1.5.0 -> 1.6.0
+- changed pkg:npm/%40jridgewell/trace-mapping: 0.3.25 -> 0.3.31
+- changed pkg:npm/%40rollup/rollup-android-arm-eabi: 4.44.0 -> 4.63.1
+- changed pkg:npm/%40rollup/rollup-android-arm64: 4.44.0 -> 4.63.1
+- changed pkg:npm/%40rollup/rollup-darwin-arm64: 4.44.0 -> 4.63.1
+- changed pkg:npm/%40rollup/rollup-darwin-x64: 4.44.0 -> 4.63.1
+- changed pkg:npm/%40rollup/rollup-freebsd-arm64: 4.44.0 -> 4.63.1
+- changed pkg:npm/%40rollup/rollup-freebsd-x64: 4.44.0 -> 4.63.1
+- changed pkg:npm/%40rollup/rollup-linux-arm-gnueabihf: 4.44.0 -> 4.63.1
+- changed pkg:npm/%40rollup/rollup-linux-arm-musleabihf: 4.44.0 -> 4.63.1
+- changed pkg:npm/%40rollup/rollup-linux-arm64-gnu: 4.44.0 -> 4.63.1
+- changed pkg:npm/%40rollup/rollup-linux-arm64-musl: 4.44.0 -> 4.63.1
+- changed pkg:npm/%40rollup/rollup-linux-riscv64-gnu: 4.44.0 -> 4.63.1
+- changed pkg:npm/%40rollup/rollup-linux-riscv64-musl: 4.44.0 -> 4.63.1
+- changed pkg:npm/%40rollup/rollup-linux-s390x-gnu: 4.44.0 -> 4.63.1
+- changed pkg:npm/%40rollup/rollup-linux-x64-gnu: 4.44.0 -> 4.63.1
+- changed pkg:npm/%40rollup/rollup-linux-x64-musl: 4.44.0 -> 4.63.1
+- changed pkg:npm/%40rollup/rollup-win32-arm64-msvc: 4.44.0 -> 4.63.1
+- changed pkg:npm/%40rollup/rollup-win32-ia32-msvc: 4.44.0 -> 4.63.1
+- changed pkg:npm/%40rollup/rollup-win32-x64-msvc: 4.44.0 -> 4.63.1
+- changed pkg:npm/%40types/chai: 5.2.2 -> 5.2.3
+- changed pkg:npm/%40types/estree: 1.0.8 -> 1.0.9
+- changed pkg:npm/%40types/node: 26.1.2 -> 26.6.3
+- changed pkg:npm/%40vitest/coverage-v8: 3.2.4 -> 4.1.11
+- changed pkg:npm/%40vitest/expect: 3.2.4 -> 4.1.11
+- changed pkg:npm/%40vitest/mocker: 3.2.4 -> 4.1.11
+- changed pkg:npm/%40vitest/pretty-format: 3.2.4 -> 4.1.11
+- changed pkg:npm/%40vitest/runner: 3.2.4 -> 4.1.11
+- changed pkg:npm/%40vitest/snapshot: 3.2.4 -> 4.1.11
+- changed pkg:npm/%40vitest/spy: 3.2.4 -> 4.1.11
+- changed pkg:npm/%40vitest/utils: 3.2.4 -> 4.1.11
+- changed pkg:npm/ast-v8-to-istanbul: 0.3.3 -> 1.0.6
+- changed pkg:npm/chai: 5.2.0 -> 6.2.2
+- changed pkg:npm/color-convert: 2.0.1, 3.1.3 -> 3.1.3
+- changed pkg:npm/color-name: 1.1.4, 2.1.0 -> 2.1.1
+- changed pkg:npm/es-module-lexer: 1.7.0 -> 2.3.2
+- changed pkg:npm/esbuild: 0.25.5 -> 0.28.2
+- changed pkg:npm/expect-type: 1.2.1 -> 1.4.0
+- changed pkg:npm/fast-uri: 3.1.0 -> 3.1.6
+- changed pkg:npm/fdir: 6.4.6 -> 6.5.0
+- changed pkg:npm/humanize-duration: 3.34.0 -> 3.35.0
+- changed pkg:npm/ip-address: 10.2.0 -> 10.7.0
+- changed pkg:npm/istanbul-reports: 3.1.7 -> 3.2.0
+- changed pkg:npm/js-tokens: 9.0.1 -> 10.0.0
+- changed pkg:npm/js-yaml: 5.2.2 -> 5.4.2
+- changed pkg:npm/magic-string: 0.30.17 -> 0.30.21
+- changed pkg:npm/magicast: 0.3.5 -> 0.5.5
+- changed pkg:npm/mqtt: 5.15.2 -> 5.16.0
+- changed pkg:npm/nan: 2.23.0 -> 2.28.0
+- changed pkg:npm/nanoid: 3.3.11 -> 3.3.19
+- changed pkg:npm/picomatch: 4.0.2 -> 4.0.7
+- changed pkg:npm/postcss: 8.5.6 -> 8.5.28
+- changed pkg:npm/rollup: 4.44.0 -> 4.63.1
+- changed pkg:npm/std-env: 3.9.0 -> 4.2.0
+- changed pkg:npm/tinyexec: 0.3.2 -> 1.3.1
+- changed pkg:npm/tinyglobby: 0.2.14 -> 0.2.17
+- changed pkg:npm/tinyrainbow: 2.0.0 -> 3.1.1
+- changed pkg:npm/undici-types: 8.3.0 -> 8.9.0
+- changed pkg:npm/vite: 6.3.5 -> 7.3.6
+- changed pkg:npm/vitest: 3.2.4 -> 4.1.11
+- changed pkg:npm/worker-timers: 8.0.33 -> 8.0.34
+- changed pkg:npm/ws: 8.21.1 -> 8.22.0
+- changed pkg:npm/zigbee-herdsman: 10.8.0 -> 10.10.0
+- changed pkg:npm/zigbee-herdsman-converters: 26.90.0 -> 26.115.1
+- changed pkg:npm/zigbee2mqtt-windfront: 2.14.0 -> 2.15.0
+
+## Vulnerabilities: 3 new, 44 resolved, 15 still present
+
+- new CVE-2026-110180 in fast-uri 3.1.6 medium
+- new CVE-2026-112950 in @vitest/mocker 4.1.11 medium
+- new CVE-2026-84394 in fast-uri 3.1.6 high
+- resolved CVE-2025-58751 in vite 6.3.5 low
+- resolved CVE-2025-58752 in vite 6.3.5 low
+- resolved CVE-2025-62522 in vite 6.3.5 medium
+- resolved CVE-2026-101910 in ip-address 10.2.0 medium
+- resolved CVE-2026-101913 in ip-address 10.2.0 medium
+- resolved CVE-2026-102276 in brace-expansion 2.1.0 high
+- resolved CVE-2026-102277 in brace-expansion 2.1.0 medium
+- resolved CVE-2026-102278 in brace-expansion 2.1.0 high
+- resolved CVE-2026-104848 in tinypool 1.1.1 critical
+- resolved CVE-2026-104849 in tinypool 1.1.1 critical
+- resolved CVE-2026-13149 in brace-expansion 2.1.0 high
+- resolved CVE-2026-13676 in fast-uri 3.1.0 high
+- resolved CVE-2026-14257 in brace-expansion 2.1.0 high
+- resolved CVE-2026-16221 in fast-uri 3.1.0 high
+- resolved CVE-2026-18446 in fast-uri 3.1.0 high
+- resolved CVE-2026-26996 in minimatch 9.0.5 high
+- resolved CVE-2026-27606 in rollup 4.44.0 high
+- resolved CVE-2026-27903 in minimatch 9.0.5 high
+- resolved CVE-2026-27904 in minimatch 9.0.5 high
+- resolved CVE-2026-33671 in picomatch 4.0.2 high
+- resolved CVE-2026-33672 in picomatch 4.0.2 medium
+- resolved CVE-2026-39363 in vite 6.3.5 high
+- resolved CVE-2026-39365 in vite 6.3.5 medium
+- resolved CVE-2026-41305 in postcss 8.5.6 medium
+- resolved CVE-2026-45623 in postcss 8.5.6 high
+- resolved CVE-2026-47429 in vitest 3.2.4 critical
+- resolved CVE-2026-53571 in vite 6.3.5 high
+- resolved CVE-2026-53632 in vite 6.3.5 medium
+- resolved CVE-2026-54272 in ip-address 10.2.0 medium
+- resolved CVE-2026-6321 in fast-uri 3.1.0 high
+- resolved CVE-2026-6322 in fast-uri 3.1.0 high
+- resolved CVE-2026-67213 in nanoid 3.3.11 high
+- resolved CVE-2026-67214 in nanoid 3.3.11 high
+- resolved CVE-2026-69152 in brace-expansion 2.1.0 high
+- resolved CVE-2026-69153 in postcss 8.5.6 medium
+- resolved CVE-2026-69192 in ip-address 10.2.0 high
+- resolved CVE-2026-69198 in ip-address 10.2.0 medium
+- resolved CVE-2026-73086 in nanoid 3.3.11 high
+- resolved CVE-2026-73646 in postcss 8.5.6 high
+- resolved CVE-2026-75975 in fast-uri 3.1.0 high
+- resolved CVE-2026-76172 in fast-uri 3.1.0 high
+- resolved CVE-2026-84373 in @vitest/mocker 3.2.4 medium
+- resolved CVE-2026-84373 in vitest 3.2.4 medium
+- resolved GHSA-r3ph-w7gj-g6xm in js-yaml 5.2.2 medium
+- still present CVE-2026-101911 in ip-address: 10.2.0 medium -> 10.7.0 medium
+- still present CVE-2026-101912 in ip-address: 10.2.0 medium -> 10.7.0 medium
+- still present CVE-2026-110095 in fast-uri: 3.1.0 low -> 3.1.6 low
+- still present CVE-2026-110306 in fast-uri: 3.1.0 medium -> 3.1.6 medium
+- still present CVE-2026-110725 in fast-uri: 3.1.0 low -> 3.1.6 low
+- still present CVE-2026-111997 in ip-address: 10.2.0 medium -> 10.7.0 medium
+- still present CVE-2026-112942 in vite: 6.3.5 high -> 7.3.6 high
+- still present CVE-2026-112943 in vite: 6.3.5 medium -> 7.3.6 medium
+- still present CVE-2026-112944 in vite: 6.3.5 medium -> 7.3.6 medium
+- still present CVE-2026-112945 in vite: 6.3.5 low -> 7.3.6 low
+- still present CVE-2026-112946 in vite: 6.3.5 medium -> 7.3.6 medium
+- still present CVE-2026-112949 in @vitest/mocker: 3.2.4 medium -> 4.1.11 medium
+- still present CVE-2026-84292 in fast-uri: 3.1.0 high -> 3.1.6 high
+- still present CVE-2026-86472 in fast-uri: 3.1.0 medium -> 3.1.6 medium
+- still present CVE-2026-93749 in source-map-js: 1.2.1 high -> 1.2.1 high
+
+## Technical file claims: 11 changed
+
+- 1b scan.version
+  - before: Version assessed: zigbee2mqtt 2.13.0, commit fcbb7ff44bdc.
+  - after: Version assessed: zigbee2mqtt 2.14.2, commit 5c0c1c60078e.
+- 2b repo.runtime
+  - before: 130 of the 342 SBOM components are runtime dependencies according to pnpm-lock.yaml; the rest are development and build tools that do not ship with the product.
+  - after: 111 of the 278 SBOM components are runtime dependencies according to pnpm-lock.yaml; the rest are development and build tools that do not ship with the product.
+- 2b scan.fixes
+  - before: 59 of the 59 matches have a fixed version available upstream.
+  - after: 18 of the 18 matches have a fixed version available upstream.
+- 2b scan.kev
+  - before: 0 of the 57 CVE identifiers are in the CISA Known Exploited Vulnerabilities catalogue (version 2026.10.23). The catalogue is a public signal of exploitation, not the Article 14 test, which starts when the manufacturer becomes aware.
+  - after: 0 of the 18 CVE identifiers are in the CISA Known Exploited Vulnerabilities catalogue (version 2026.10.23). The catalogue is a public signal of exploitation, not the Article 14 test, which starts when the manufacturer becomes aware.
+- 2b scan.runtime-vulnerabilities
+  - before: 21 of the 59 matches are in runtime dependencies (fast-uri 3.1.0, ip-address 10.2.0, js-yaml 5.2.2); the others are in development and build tools.
+  - after: 10 of the 18 matches are in runtime dependencies (fast-uri 3.1.6, ip-address 10.7.0); the others are in development and build tools.
+- 2b scan.sbom
+  - before: Software bill of materials: CycloneDX JSON, 342 components (315 npm, 27 github), generated by syft 1.55.0 on 2026-10-26.
+  - after: Software bill of materials: CycloneDX JSON, 278 components (251 npm, 27 github), generated by syft 1.55.0 on 2026-10-26.
+- 2b scan.vulnerabilities
+  - before: Known vulnerabilities at scan time: 59 matches (3 critical, 28 high, 23 medium, 5 low), 58 distinct identifiers, found by grype 0.121.0 with the vulnerability database built 2026-10-25.
+  - after: Known vulnerabilities at scan time: 18 matches (4 high, 11 medium, 3 low), 18 distinct identifiers, found by grype 0.121.0 with the vulnerability database built 2026-10-25.
+- 3 scan.epss
+  - before: Input for the risk assessment, highest EPSS exploit probabilities in runtime dependencies: CVE-2026-6321 in fast-uri, 0.008; CVE-2026-6322 in fast-uri, 0.007; CVE-2026-13676 in fast-uri, 0.005.
+  - after: Input for the risk assessment, highest EPSS exploit probabilities in runtime dependencies: CVE-2026-84394 in fast-uri, 0.004; CVE-2026-101912 in ip-address, 0.004; CVE-2026-101911 in ip-address, 0.003.
+- 6 repo.tests
+  - before: Automated test code in the repository: 24 files (for example test/controller.test.ts, test/data.test.ts and 22 more).
+  - after: Automated test code in the repository: 26 files (for example test/controller.test.ts, test/data.test.ts and 24 more).
+- 6 scan.test
+  - before: Dependency scan on 2026-10-26: 59 vulnerability matches across 342 components; SBOM in 3.03 s and matching in 4.1 s.
+  - after: Dependency scan on 2026-10-26: 18 vulnerability matches across 278 components; SBOM in 2.39 s and matching in 3.67 s.
+- 8 scan.sbom-on-request
+  - before: The SBOM is available in CycloneDX JSON (342 components) and `compline scan` regenerates it for every release.
+  - after: The SBOM is available in CycloneDX JSON (278 components) and `compline scan` regenerates it for every release.

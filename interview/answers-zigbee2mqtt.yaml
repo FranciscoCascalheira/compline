@@ -1,0 +1,49 @@
+# Demo answers for Zigbee2MQTT 2.14.2, taken only from its public documentation, each with the URL it came from.
+# Zigbee2MQTT stands in for the software of a manufacturer's Zigbee gateway (D1). Questions the documentation
+# does not answer are left out on purpose, so they stay PENDING in the technical file (D6).
+product: Zigbee2MQTT public documentation, read on 2026-10-26 (no interview with the maintainers)
+answers:
+  - question: Q-1a
+    answer: >
+      A bridge between Zigbee devices and MQTT. It lets users control their Zigbee devices without the vendor's
+      bridge or gateway and integrate them with whatever smart home software they use.
+    source: {url: 'https://github.com/Koenkk/zigbee2mqtt/blob/2.14.2/README.md', retrieved: '2026-10-26'}
+
+  - question: Q-1c
+    answer: >
+      Software only. It runs on a host system such as a Raspberry Pi or an Intel NUC, with a Zigbee adapter
+      connected over USB, GPIO, or remotely over Wi-Fi or Ethernet.
+    source: {url: 'https://www.zigbee2mqtt.io/guide/getting-started/', retrieved: '2026-10-26'}
+
+  - question: Q-1d
+    answer: >
+      Security guidance for users is published as "Securing the installation": run under a dedicated unprivileged
+      user, restrict access to the data directory and to configuration.yaml (chmod 600), keep credentials in a
+      separate secrets file, do not expose the MQTT broker publicly, keep the host and Zigbee2MQTT updated.
+      The page gives no end-of-support date and no vulnerability reporting contact.
+    source: {url: 'https://www.zigbee2mqtt.io/guide/installation/14_securing.html', retrieved: '2026-10-26'}
+
+  - question: Q-2a
+    answer: >
+      Three modules. zigbee-herdsman talks to the Zigbee adapter and offers an API to the layers above;
+      zigbee-herdsman-converters maps each device model to the Zigbee clusters it supports; Zigbee2MQTT drives
+      zigbee-herdsman, maps Zigbee messages to MQTT messages and keeps the system state in database.db, a JSON
+      text file of connected devices. Web front ends (zigbee2mqtt-frontend, zigbee2mqtt-windfront) give
+      monitoring and configuration.
+    source: {url: 'https://github.com/Koenkk/zigbee2mqtt/blob/2.14.2/README.md', retrieved: '2026-10-26'}
+
+  - question: Q-2b-cvd
+    answer: >
+      None published. The repository's security page says "No security policy detected".
+    source: {url: 'https://github.com/Koenkk/zigbee2mqtt/security/policy', retrieved: '2026-10-26'}
+
+  - question: Q-2b-contact
+    answer: >
+      Reports can be sent privately with the "Report a vulnerability" button on the repository's security page.
+    source: {url: 'https://github.com/Koenkk/zigbee2mqtt/security/policy', retrieved: '2026-10-26'}
+
+  - question: Q-2b-updates
+    answer: >
+      Manual. On Linux the user runs ./update.sh from the Zigbee2MQTT directory. The page describes no signature
+      check and no separate channel for security updates.
+    source: {url: 'https://www.zigbee2mqtt.io/guide/installation/01_linux.html', retrieved: '2026-10-26'}

@@ -1,0 +1,88 @@
+# Interview question bank for the CRA Annex VII technical file (Regulation (EU) 2024/2847).
+# One entry per point the scan cannot prove. `compline interview` lists the ones still open;
+# `compline annex` turns answered ones into claims with their source and leaves the rest PENDING (D6, D7).
+# Fields: id, item (Annex VII point), label (how the answer is introduced in the file), ask (the question, as said to the team), evidence (what a good answer points at).
+questions:
+  - id: Q-1a
+    item: 1a
+    label: Intended purpose
+    ask: What is the product for, who uses it, and in what environment? What uses can you reasonably foresee beyond the intended one?
+    evidence: product page, user manual, datasheet
+
+  - id: Q-1b
+    item: 1b
+    label: Versions on the market and in support
+    ask: Which software and firmware versions are on the market or still supported today, and which of them change how the product meets the security requirements?
+    evidence: release list, version policy, support matrix
+
+  - id: Q-1c
+    item: 1c
+    label: Hardware illustrations
+    ask: For the hardware, where are the photographs or drawings of the exterior, the CE marking and the internal layout? If the product is software only, say so.
+    evidence: photographs, drawings, label artwork
+
+  - id: Q-1d
+    item: 1d
+    label: User information and instructions
+    ask: Where are the user instructions that Annex II asks for (manufacturer contact, vulnerability reporting contact, end of support date, secure installation and use, how updates are installed)?
+    evidence: user manual, documentation site, quick start guide
+
+  - id: Q-2a
+    item: 2a
+    label: System architecture
+    ask: Walk us through the architecture. Which hardware blocks, operating system, applications and cloud services are there, which interfaces are exposed (radio, ports, APIs), and how do the software components feed into each other?
+    evidence: architecture diagram, design document, README
+
+  - id: Q-2b-cvd
+    item: 2b
+    label: Coordinated vulnerability disclosure policy
+    ask: Do you publish a coordinated vulnerability disclosure policy? Where?
+    evidence: SECURITY.md, security page, policy document
+
+  - id: Q-2b-contact
+    item: 2b
+    label: Vulnerability reporting contact
+    ask: Which address or form receives vulnerability reports, and where is it published?
+    evidence: security contact page, security.txt, repository security tab
+
+  - id: Q-2b-updates
+    item: 2b
+    label: Secure distribution of updates
+    ask: How do security updates reach users? Are they signed and verified, automatic or manual, and are security fixes shipped separately from feature updates?
+    evidence: update documentation, signing keys, release process
+
+  - id: Q-2c
+    item: 2c
+    label: Production and monitoring processes
+    ask: How is the product built, programmed and tested in production, and how do you monitor and validate those processes?
+    evidence: build and release pipeline, production test procedure, quality records
+
+  - id: Q-3
+    item: 3
+    label: Risk assessment
+    ask: Is there a cybersecurity risk assessment for this product? Where is it, and how does it treat each requirement of Annex I Part I?
+    evidence: risk assessment document, threat model
+
+  - id: Q-4
+    item: 4
+    label: Support period
+    ask: What is the support period, and what did you take into account to set it (expected time in use, component support, what users expect)?
+    evidence: support policy, end-of-life notices
+
+  - id: Q-5
+    item: 5
+    label: Standards applied
+    ask: Which harmonised standards, common specifications or certification schemes do you apply, in full or in part? For radio products today, which parts of EN 18031-1, -2 or -3?
+    evidence: test report front page, standards list, declaration of conformity
+
+  - id: Q-6
+    item: 6
+    label: Security test reports
+    ask: Which tests check the security requirements (penetration tests, fuzzing, update mechanism tests, CI tests), and where are the reports?
+    evidence: test reports, CI results, laboratory reports
+
+  - id: Q-7
+    item: 7
+    label: EU declaration of conformity
+    ask: Is there an EU declaration of conformity for this product, and who signs it?
+    evidence: signed declaration of conformity

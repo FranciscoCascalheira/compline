@@ -1,7 +1,7 @@
 {
   "name": "compline",
   "version": "0.1.0",
-  "description": "Compline: CRA technical file drafted from the repository. Scan core (SBOM, Grype, CISA KEV, FIRST EPSS) and Annex VII draft generator.",
+  "description": "Compline: the CRA Annex VII technical file, drafted from the repository and kept current. Scan (SBOM, Grype, CISA KEV, repository signals), interview, annex, diff.",
   "license": "MIT",
   "private": true,
   "type": "module",
@@ -11,6 +11,8 @@
   "scripts": {
     "scan": "node scan.mjs",
     "annex": "python3 annex7.py",
+    "compline": "python3 compline.py",
+    "demo": "bash demo.sh",
     "test": "python3 -m unittest -v"
   }
 }

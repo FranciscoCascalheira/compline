@@ -1,0 +1,31 @@
+{
+  "target": {
+    "name": "zigbee2mqtt",
+    "version": "2.14.2",
+    "commit": "5c0c1c60078e1737c5dee5f8217583bca7610e66"
+  },
+  "scanned_at": "2026-10-26T01:56:47+00:00",
+  "seconds": {
+    "sbom": 2.39,
+    "vulnerabilities": 3.67
+  },
+  "kev_source": "kev.json",
+  "artefacts": {
+    "sbom": {
+      "file": "sbom.cdx.json",
+      "sha256": "88e246d8d80599eed58505142733a5e63d280eae1281373e92aa27f67f9169e6"
+    },
+    "grype": {
+      "file": "grype.json",
+      "sha256": "935d87f0a4d5cde9d6b7005503615424ef52542176904c4b76a869a318a3d2a6"
+    },
+    "kev": {
+      "file": "kev.json",
+      "sha256": "97a6e54bc74c651ab3c55657191db9adec6c63b05ca54e4205327cfd97a8fb70"
+    },
+    "repo": {
+      "file": "repo.json",
+      "sha256": "2594108a5ab7f8919aae53c055cb97c389196585afc979ddd727d54d7903189a"
+    }
+  }
+}
