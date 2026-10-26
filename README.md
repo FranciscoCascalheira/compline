@@ -1,87 +1,92 @@
 # Compline
 
-Compline writes and maintains the Cyber Resilience Act (CRA) technical file for a manufacturer, from its repository. This repo holds the scanning core and the first file drafted from it.
+**Compline writes and maintains the Cyber Resilience Act technical file for a manufacturer, from its repository.**
 
-It is a technical proof of concept: point it at a repo, and it generates a software bill of materials (SBOM), scans that SBOM for known vulnerabilities, cross-references every CVE against the CISA KEV catalogue of actively exploited vulnerabilities and the FIRST EPSS exploit-probability score, and writes a markdown report that links each finding to the relevant notification deadline under **Article 14 of Regulation (EU) 2024/2847** (the Cyber Resilience Act).
+[![ci](https://github.com/FranciscoCascalheira/compline/actions/workflows/ci.yml/badge.svg)](https://github.com/FranciscoCascalheira/compline/actions/workflows/ci.yml)
+&nbsp;MIT licensed &nbsp;·&nbsp; early stage &nbsp;·&nbsp; not legal advice
 
-> **Not legal advice.** This repository, its script, and its generated report are a technical feasibility proof, not a legal opinion. They do not determine whether any product falls within the scope of the CRA, nor whether any CRA notification deadline has actually been triggered. That determination requires case-by-case legal and technical analysis. See `relatorio.md` (section 5, "Limitations") for the full list of known gaps.
+From 11 December 2027, every product with digital elements sold in the EU needs a cybersecurity technical file (CRA, Regulation (EU) 2024/2847, Annex VII) to keep its CE mark. Reporting duties under Article 14 already apply since 11 September 2026. Today that file is written by hand, by consultants, once. Scanners list components and flaws, and nobody keeps the two in sync.
 
-## What is new here
+Compline closes that loop:
 
-Scanners list components and flaws. Consultants write the technical file once, by hand. Compline closes the loop: the scan is the evidence, agents draft the Annex VII file from it, an engineer signs, and the file is regenerated on every release with a diff for the auditor. Every claim in the file points at the artefact and commit it came from.
+1. **Scan** the repository: CycloneDX SBOM, known flaws, CISA KEV and FIRST EPSS.
+2. **Interview** the team: 10 to 15 questions on architecture, updates and support period.
+3. **Draft** the Annex VII file with the scan as evidence. Every claim points at the artefact and commit it came from.
+4. **Review and sign**: an engineer signs. On every release the file is regenerated, and the diff is the audit trail.
 
-## Why Article 14 matters
+## Status
 
-Article 14 of the CRA requires manufacturers of products with digital elements to notify ENISA when a vulnerability in their product is being **actively exploited**:
+| Step | State | In this repo |
+| --- | --- | --- |
+| Scan: SBOM, CVEs, KEV, EPSS | Working | [`scan.mjs`](./scan.mjs), real run in [`relatorio.md`](./relatorio.md) |
+| Annex VII draft from the scan | First version | [`annex7.py`](./annex7.py), output in [`annex-vii-draft.md`](./annex-vii-draft.md), tests in [`test_annex7.py`](./test_annex7.py) |
+| Agent interview for the remaining sections | Building, 27 Oct to 14 Dec 2026 | |
+| Regeneration and diff on every release | Building | |
+| First technical file for a manufacturer | Target 14 Dec 2026 | |
 
-- An early warning within **24 hours** of becoming aware of the actively exploited vulnerability.
-- A vulnerability notification within **72 hours**, with more detail and any available mitigation.
-- A final report within **14 days** of a fix becoming available (or within one year if no fix exists).
+## The proof
 
-These reporting obligations have applied since 11 September 2026; full application of the CRA, including CE marking, lands on 11 December 2027.
+A real scan of OWASP NodeGoat, a deliberately outdated demo app, run on 24 October 2026:
 
-The hard part is not listing vulnerabilities — free scanners already do that. The hard part is knowing which of those vulnerabilities is **actively exploited**, because that is what starts the clock. Compline approaches that by cross-referencing every CVE found against the public CISA KEV (Known Exploited Vulnerabilities) catalogue, and ranking the rest by FIRST's EPSS exploit-probability score.
+![Compline scan output on OWASP NodeGoat](docs/scan-nodegoat.png)
 
-## What's in this repo
+- **422** components in the SBOM.
+- **105** known vulnerabilities: 14 critical, 58 high, 23 medium, 10 low.
+- **77** unique CVEs checked against the CISA KEV catalogue (version 2026.10.23). None was actively exploited at run time, so no Article 14 clock was running.
+- Highest EPSS score in that run: `CVE-2020-7774` (y18n), 0.69377.
+- About 3 seconds for SBOM plus scan.
 
-| File | What it is |
-|---|---|
-| `prova.mjs` | The proof-of-concept script. Runs Syft (SBOM) + Grype (vulnerability scan) against a target directory, then cross-references the results with the public CISA KEV catalogue and FIRST EPSS API, and writes `relatorio.md`. |
-| `relatorio.md` | A real report generated by `prova.mjs`, run on 24 October 2026 against a local clone of OWASP NodeGoat. Written in Portuguese (the language of the original proof). |
-| `annex7.py` | Drafts a CRA **Annex VII technical file** from `relatorio.md`. Scan-derived sections are filled and every claim carries an evidence tag (source file, SHA-256, commit). Sections that depend on the team interview are marked PENDING. Run: `python3 annex7.py`. |
-| `annex-vii-draft.md` | The draft produced on 25 October 2026 from the NodeGoat report: 9 evidence-tagged claims, 13 pending interview items, the 8 Annex VII sections in order. A draft for engineer review, not a conformity assessment. |
-| `LICENSE` | MIT license. |
-| `package.json` | Minimal manifest — no runtime dependencies, Node.js built-ins only. |
+The next day, `annex7.py` turned that report into the first draft of the technical file:
 
-Not included in this repo, by design: the target codebase (OWASP NodeGoat), the full CISA KEV catalogue dump, the FIRST EPSS dump, and the generated SBOM/vulnerability JSON files. They are either large, regenerable, or belong to third parties — see "How to run" below.
+![First Annex VII draft generated from the scan](docs/annex-vii-draft.png)
 
-## Proof numbers (24 October 2026, against OWASP NodeGoat)
+- **9** claims filled from the scan, each tagged with the source file, its SHA-256 and the commit.
+- **13** items that depend on the team interview, marked `PENDING` rather than invented.
+- All **8** Annex VII sections, in the order of the regulation.
 
-Full detail in [`relatorio.md`](./relatorio.md). Summary:
+These numbers describe NodeGoat, not a customer product.
 
-- **422** components identified in the SBOM.
-- **105** vulnerabilities found (14 Critical, 58 High, 23 Medium, 10 Low).
-- **77** unique CVEs cross-referenced against the CISA KEV catalogue (version 2026.10.23) — **0 of 77** were in KEV at the time of the run.
-- Top EPSS-ranked CVE in that run: `CVE-2020-7774` (y18n), EPSS 0.69377.
-- Total SBOM generation + vulnerability scan time: ~3 seconds.
+## Run it
 
-OWASP NodeGoat is a deliberately outdated demo application, used here purely as a target to exercise the pipeline — these numbers describe NodeGoat, not any product of Compline's own.
-
-## How to run
-
-### Prerequisites
-
-- [Node.js](https://nodejs.org/) 18 or later.
-- [Syft](https://github.com/anchore/syft) and [Grype](https://github.com/anchore/grype) installed and available on your `PATH` (or point `SYFT_BIN` / `GRYPE_BIN` env vars at your binaries). Install instructions: see each tool's README — both ship a one-line install script.
-- Internet access at run time, to query the public CISA KEV feed and the FIRST EPSS API.
-
-### Steps
+You need Node.js 18 or later, Python 3.10 or later, and [Syft](https://github.com/anchore/syft) and [Grype](https://github.com/anchore/grype) on your `PATH` (or set `SYFT_BIN` and `GRYPE_BIN`). The scan queries the public CISA KEV feed and the FIRST EPSS API, so it needs internet access.
 
 ```bash
-# 1. Clone this repo
-git clone https://github.com/FranciscoCascalheira/compline.git compline
+git clone https://github.com/FranciscoCascalheira/compline.git
 cd compline
 
-# 2. Clone a target to scan — OWASP NodeGoat is what the proof above used
+# a target to scan: OWASP NodeGoat is what the proof used
 git clone https://github.com/OWASP/NodeGoat.git exemplo-NodeGoat
 
-# 3. Run the proof
-node prova.mjs
+npm run scan     # writes sbom.cdx.json, vulns.json and relatorio.md
+npm run annex    # writes annex-vii-draft.md from relatorio.md
+npm test         # checks the draft against the report
 ```
 
-This writes `sbom.cdx.json` (CycloneDX SBOM), `vulns.json` (Grype scan results), `relatorio.md` (the human-readable report), and, on a successful run, dated local copies of the CISA KEV catalogue and the FIRST EPSS response used that day. All of these are git-ignored — they are either large, dated, or regenerable.
+To scan another target, set `TARGET_DIR=/path/to/repo`. Generated SBOM, scan and feed files are git-ignored because they are large, dated or regenerable. The report text is in Portuguese, the language of the first proof; the technical file is in English.
 
-To scan a different target, clone it elsewhere and edit `TARGET_DIR` at the top of `prova.mjs`, or set it via the `TARGET_DIR` environment variable if you've added that override.
+## Files
 
-## Scope and limitations
+| File | What it is |
+| --- | --- |
+| `scan.mjs` | Runs Syft and Grype, cross-checks every CVE with CISA KEV and FIRST EPSS, and writes `relatorio.md`. Node.js built-ins only. |
+| `relatorio.md` | The real report from the 24 October 2026 NodeGoat run. |
+| `annex7.py` | Drafts the CRA Annex VII technical file from the report, with evidence tags. Python standard library only. |
+| `annex-vii-draft.md` | The draft generated on 25 October 2026. |
+| `test_annex7.py` | Checks that the draft has every Annex VII section, that every scan claim carries the report hash, that the numbers match the report, and that interview sections stay `PENDING`. |
 
-- No deduplication of repeated component/CVE pairs across versions.
-- No normalization between GitHub Security Advisory severity and NVD severity — the report uses whichever Grype surfaces first.
-- KEV and EPSS cross-referencing depend on the public CISA and FIRST APIs being reachable at run time; if either fails, the report says so rather than guessing.
-- EPSS is a statistical estimate of future exploitation probability, not a confirmation of active exploitation — only KEV membership is treated as a proxy for "actively exploited" for Article 14 purposes.
+## Limitations
 
-See `relatorio.md`, section 5, for the complete list as of the last run.
+- This is an early technical proof, not a conformity assessment and not legal advice. Whether a product is in CRA scope, and whether an Article 14 deadline has started, needs case-by-case analysis.
+- The draft fills only what the scan can prove. Architecture, risk assessment, support period, standards and the declaration of conformity wait for the interview and an engineer's signature.
+- No deduplication of repeated component and CVE pairs across versions, and no normalisation between GitHub Security Advisory and NVD severities.
+- EPSS estimates the probability of future exploitation. Only KEV membership is treated as a proxy for "actively exploited".
+- See section 5 of `relatorio.md` for the full list as of the last run.
+
+## Team
+
+- **Francisco Cascalheira**, founder and engineer. FEUP, Informatics and Computing Engineering. Head of Product at Unilinkr.
+- **Rian Vilares**, co-founder, industry. FEUP, Mechanical Engineering.
 
 ## License
 
-MIT — see [`LICENSE`](./LICENSE).
+MIT, see [`LICENSE`](./LICENSE).

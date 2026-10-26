@@ -1,5 +1,6 @@
-// Prova tecnica: SBOM (Syft) + varrimento de vulnerabilidades (Grype) sobre exemplo-NodeGoat.
-// Resolve syft/grype via PATH (ou SYFT_BIN/GRYPE_BIN). Sem dependencias externas.
+// Compline scan: SBOM (Syft) + vulnerability scan (Grype) + CISA KEV and FIRST EPSS cross-check.
+// Resolves syft/grype from PATH (or SYFT_BIN/GRYPE_BIN). No npm dependencies, Node.js built-ins only.
+// Writes relatorio.md (report text in Portuguese, the language of the first proof); annex7.py reads it.
 
 import { execFileSync } from 'node:child_process';
 import { writeFileSync, readFileSync, existsSync } from 'node:fs';
@@ -32,7 +33,7 @@ function run(bin, args, label) {
   return result;
 }
 
-// --- 1) Syft: gerar SBOM CycloneDX JSON ---
+// --- 1) Syft: generate a CycloneDX JSON SBOM ---
 console.log('A correr syft sobre exemplo-NodeGoat...');
 let sbomJson;
 try {
@@ -44,13 +45,13 @@ try {
 writeFileSync(SBOM_PATH, sbomJson, 'utf8');
 console.log(`SBOM gravado em ${SBOM_PATH} (${timings.syft} ms)`);
 
-// --- 2) Grype: varrer o SBOM e gravar vulns.json ---
+// --- 2) Grype: scan the SBOM and write vulns.json ---
 console.log('A correr grype sobre o SBOM...');
 const vulnsJson = run(GRYPE_BIN, [`sbom:${SBOM_PATH}`, '-o', 'json'], 'grype');
 writeFileSync(VULNS_PATH, vulnsJson, 'utf8');
 console.log(`Resultados do grype gravados em ${VULNS_PATH} (${timings.grype} ms)`);
 
-// --- 3) Analisar resultados ---
+// --- 3) Analyse results ---
 const sbom = JSON.parse(readFileSync(SBOM_PATH, 'utf8'));
 const vulnsReport = JSON.parse(readFileSync(VULNS_PATH, 'utf8'));
 
@@ -119,7 +120,7 @@ const criticasAltas = vulnerabilidades
 
 const algumaExploradaKEV = vulnerabilidades.some((v) => v.kev === true);
 
-// --- 3b) Cruzamento com o catálogo público CISA KEV e com o EPSS da FIRST ---
+// --- 3b) Cross-check against the public CISA KEV catalogue and FIRST EPSS ---
 const dataGeracao = new Date().toISOString().slice(0, 10);
 const KEV_URL = 'https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json';
 const EPSS_URL = 'https://api.first.org/data/v1/epss';
@@ -192,7 +193,7 @@ const top10EPSS = vulnsUnicas
   .sort((a, b) => b.epssFirst.epss - a.epssFirst.epss)
   .slice(0, 10);
 
-// --- 4) Gerar relatorio.md ---
+// --- 4) Write relatorio.md ---
 
 function linhaTabela(v) {
   const kevTexto = v.noKEV ? 'Sim' : 'Não';

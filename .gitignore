@@ -6,3 +6,7 @@ vulns.json
 kev-cisa-*.json
 epss-first-*.json
 .env
+
+# Python
+__pycache__/
+*.pyc

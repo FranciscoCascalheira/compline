@@ -1,7 +1,7 @@
 {
-  "name": "compline-proof",
+  "name": "compline",
   "version": "0.1.0",
-  "description": "Compline proof of concept: SBOM + vulnerability scan, cross-referenced against CISA KEV and FIRST EPSS, mapped to CRA Article 14.",
+  "description": "Compline: CRA technical file drafted from the repository. Scan core (SBOM, Grype, CISA KEV, FIRST EPSS) and Annex VII draft generator.",
   "license": "MIT",
   "private": true,
   "type": "module",
@@ -9,6 +9,8 @@
     "node": ">=18"
   },
   "scripts": {
-    "prove": "node prova.mjs"
+    "scan": "node scan.mjs",
+    "annex": "python3 annex7.py",
+    "test": "python3 -m unittest -v"
   }
 }
