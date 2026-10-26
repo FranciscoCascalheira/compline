@@ -1,30 +1,31 @@
 # Technical documentation, Cyber Resilience Act, Annex VII
 # Product: exemplo-NodeGoat (clone público do OWASP NodeGoat)
 
-Draft generated 2026-10-25 by Compline from the scan of 2026-10-24. Scan-derived sections are filled and
+Draft generated 2026-10-26 by Compline from the scan of 2026-10-24. Scan-derived sections are filled and
 carry evidence tags. Interview-derived sections are marked PENDING. This is a draft for engineer review
 and signature, not legal advice, and not yet a conformity assessment.
 
 ## 1. General description of the product with digital elements
 - 1(a) Intended purpose: **PENDING, team interview.**
 - 1(b) Software versions affecting conformity: **PENDING, team interview.**
-- 1(c) Hardware product and external interfaces: **PENDING, team interview.**
+- 1(c) Where the product is hardware, photographs or illustrations of external features, marking and internal layout: **PENDING, team interview.**
 - 1(d) Information and instructions to the user (Annex II): **PENDING, team interview.**
 
 ## 2. Design, development, production and vulnerability handling processes
 - 2(a) System architecture and interaction of components: **PENDING, team interview.**
 - 2(b) Vulnerability handling, Annex I Part II:
-  - Software bill of materials: CycloneDX SBOM with **422 components**, generated with Syft. [evidence: relatorio.md sha256:ead3b33d4563 @ 05958ae]
-  - Known vulnerabilities at scan time: **105** reported by Grype (14 critical, 58 high, 23 medium, 10 low). [evidence: relatorio.md sha256:ead3b33d4563 @ 05958ae]
-  - Unique CVE/GHSA identifiers in the critical and high table: **56**. [evidence: relatorio.md sha256:ead3b33d4563 @ 05958ae]
-  - Actively exploited (CISA KEV) at scan time: **0**, therefore no Article 14 early-warning clock was running at scan time. [evidence: relatorio.md sha256:ead3b33d4563 @ 05958ae]
-  - Critical findings with a fix available: **14 of 14**. [evidence: relatorio.md sha256:ead3b33d4563 @ 05958ae]
+  - Software bill of materials: CycloneDX SBOM with **422 components**, generated with Syft. [evidence: relatorio.md sha256:ead3b33d4563 @ bf77836]
+  - Known vulnerabilities at scan time: **105** reported by Grype (14 critical, 58 high, 23 medium, 10 low). [evidence: relatorio.md sha256:ead3b33d4563 @ bf77836]
+  - Unique CVE/GHSA identifiers in the critical and high table: **54**. [evidence: relatorio.md sha256:ead3b33d4563 @ bf77836]
+  - Identifiers in the CISA KEV catalogue at scan time: **0**. KEV is a public signal of exploitation, not the Article 14 test. [evidence: relatorio.md sha256:ead3b33d4563 @ bf77836]
+  - Critical findings with a fix available: **14 of 14**. [evidence: relatorio.md sha256:ead3b33d4563 @ bf77836]
   - Coordinated vulnerability disclosure policy and contact: **PENDING, team interview.**
   - Secure update distribution and separation of security from functional updates: **PENDING, team interview.**
+- 2(c) Production and monitoring processes and their validation: **PENDING, team interview.**
 
 ## 3. Cybersecurity risk assessment (Article 13(2))
 - Risk assessment covering planning, design, development, production, delivery and maintenance: **PENDING, team interview.**
-- Inputs available from the scan: the 56 identifiers above, ranked by EPSS exploit probability in the report. [evidence: relatorio.md sha256:ead3b33d4563 @ 05958ae]
+- Inputs available from the scan: the 54 identifiers above, ranked by EPSS exploit probability in the report. [evidence: relatorio.md sha256:ead3b33d4563 @ bf77836]
 
 ## 4. Support period and its justification (Article 13(8))
 - Support period: **PENDING, team interview.**
@@ -33,14 +34,14 @@ and signature, not legal advice, and not yet a conformity assessment.
 - **PENDING, team interview.**
 
 ## 6. Reports of tests carried out to verify conformity (Annex I and vulnerability handling)
-- Dependency scan of 2026-10-24 with Syft and Grype: 105 findings, 70 with a fix available. [evidence: relatorio.md sha256:ead3b33d4563 @ 05958ae]
+- Dependency scan of 2026-10-24 with Syft and Grype: 105 findings; 70 of the 72 critical and high findings have a fix available. [evidence: relatorio.md sha256:ead3b33d4563 @ bf77836]
 - Further tests (fuzzing, penetration, update mechanism): **PENDING, team interview.**
 
 ## 7. Copy of the EU declaration of conformity
 - **PENDING, team interview.** (template Annex V)
 
 ## 8. Software bill of materials (on reasoned request of a market surveillance authority)
-- Available in CycloneDX JSON, 422 components, regenerated on every release. [evidence: relatorio.md sha256:ead3b33d4563 @ 05958ae]
+- Available in CycloneDX JSON, 422 components, regenerated on every release. [evidence: relatorio.md sha256:ead3b33d4563 @ bf77836]
 
 ## Appendix A. Critical findings at scan time (from the report)
 | Component | Version | Identifier | Fix available | In CISA KEV |
@@ -61,5 +62,5 @@ and signature, not legal advice, and not yet a conformity assessment.
 | fsevents | 1.2.9 | GHSA-xv2f-5jw4-v95m | Sim (1.2.11) | Não |
 
 ## Appendix B. Evidence index
-- [evidence: relatorio.md sha256:ead3b33d4563 @ 05958ae]
+- [evidence: relatorio.md sha256:ead3b33d4563 @ bf77836]
 - Next release: regenerate this file, diff against this version, keep both for the auditor.

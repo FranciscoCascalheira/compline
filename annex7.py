@@ -30,9 +30,12 @@ target = grab(r'Alvo analisado:\s*(.+)')
 date = grab(r'Data de geração:\s*(\S+)')
 tools = grab(r'Ferramentas:\s*(.+)')
 
+# Rows of the critical and high table only (section 2 of the report). Reading every table also picked up the
+# EPSS table, whose third column is a severity, and counted "Critical" and "High" as identifiers (errata A01).
+table = text.split('\n## 2.', 1)[1].split('\n## 3.', 1)[0]
 rows = []
-for line in text.splitlines():
-    if line.startswith('|') and 'CVE-' in line or line.startswith('|') and 'GHSA-' in line:
+for line in table.splitlines():
+    if line.startswith('|') and ('CVE-' in line or 'GHSA-' in line):
         cells = [c.strip() for c in line.strip('|').split('|')]
         if len(cells) >= 6:
             rows.append(cells)
@@ -54,7 +57,7 @@ and signature, not legal advice, and not yet a conformity assessment.
 ## 1. General description of the product with digital elements
 - 1(a) Intended purpose: {P}
 - 1(b) Software versions affecting conformity: {P}
-- 1(c) Hardware product and external interfaces: {P}
+- 1(c) Where the product is hardware, photographs or illustrations of external features, marking and internal layout: {P}
 - 1(d) Information and instructions to the user (Annex II): {P}
 
 ## 2. Design, development, production and vulnerability handling processes
@@ -63,10 +66,11 @@ and signature, not legal advice, and not yet a conformity assessment.
   - Software bill of materials: CycloneDX SBOM with **{components} components**, generated with Syft. {E}
   - Known vulnerabilities at scan time: **{vulns}** reported by Grype ({sev['Critical']} critical, {sev['High']} high, {sev['Medium']} medium, {sev['Low']} low). {E}
   - Unique CVE/GHSA identifiers in the critical and high table: **{len(cves)}**. {E}
-  - Actively exploited (CISA KEV) at scan time: **{len(kev)}**, therefore no Article 14 early-warning clock was running at scan time. {E}
+  - Identifiers in the CISA KEV catalogue at scan time: **{len(kev)}**. KEV is a public signal of exploitation, not the Article 14 test. {E}
   - Critical findings with a fix available: **{len([r for r in crit if r[4].lower().startswith('sim')])} of {len(crit)}**. {E}
   - Coordinated vulnerability disclosure policy and contact: {P}
   - Secure update distribution and separation of security from functional updates: {P}
+- 2(c) Production and monitoring processes and their validation: {P}
 
 ## 3. Cybersecurity risk assessment (Article 13(2))
 - Risk assessment covering planning, design, development, production, delivery and maintenance: {P}
@@ -79,7 +83,7 @@ and signature, not legal advice, and not yet a conformity assessment.
 - {P}
 
 ## 6. Reports of tests carried out to verify conformity (Annex I and vulnerability handling)
-- Dependency scan of {date} with Syft and Grype: {vulns} findings, {len(fixable)} with a fix available. {E}
+- Dependency scan of {date} with Syft and Grype: {vulns} findings; {len(fixable)} of the {len(rows)} critical and high findings have a fix available. {E}
 - Further tests (fuzzing, penetration, update mechanism): {P}
 
 ## 7. Copy of the EU declaration of conformity
@@ -98,6 +102,6 @@ and signature, not legal advice, and not yet a conformity assessment.
 - Next release: regenerate this file, diff against this version, keep both for the auditor.
 """
 open(dst, 'w', encoding='utf8').write(out)
-filled = out.count('[evidence:')
-pending = out.count('PENDING')
+filled = sum('[evidence:' in line for line in out.split('## Appendix B')[0].splitlines())  # the index line is not a claim
+pending = out.count('**PENDING, team interview.**')
 print(f'wrote {dst}: {filled} evidence-tagged claims, {pending} pending interview items, {len(cves)} identifiers, {len(crit)} critical rows')
